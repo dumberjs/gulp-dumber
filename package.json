@@ -1,0 +1,23 @@
+{
+  "name": "gulp-dumber",
+  "version": "0.1.0",
+  "description": "Gulp plugin for dumber bundler",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/huochunpeng/gulp-dumber.git"
+  },
+  "keywords": [
+    "dumber",
+    "bundler"
+  ],
+  "author": "Chunpeng Huo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/huochunpeng/gulp-dumber/issues"
+  },
+  "homepage": "https://github.com/huochunpeng/gulp-dumber#readme"
+}
