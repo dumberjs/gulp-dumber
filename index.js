@@ -1,13 +1,23 @@
 'use strict';
 const through = require('through2');
-const gutil = require('gulp-util');
-const PluginError = gutil.PluginError;
+const PluginError = require('plugin-error');
+const Dumber = require('dumber').default;
+const Concat = require('concat-with-sourcemaps');
+const Vinyl = require('vinyl');
+const path = require('path');
 
 const PLUGIN_NAME = 'dumber';
 
 /*
 Optional options:
 
+// src folder, default to "src",
+src: "my-src",
+
+// baseUrl for requirejs at runtime, default to "dist",
+baseUrl: "my-server/foler", or "/my/server/folder"
+
+// dependencies (or deps in short)
 dependencies: [
   'npm_package_not_explicitly_required_by_your_code',
   {
@@ -22,70 +32,94 @@ dependencies: [
 // additional deps finder, on top of standard amd+cjs deps finder
 depsFinder: function (filename: string, file_contents: string) {
   return string_array_of_additional_module_ids;
+  // or return a promise to resolve deps
 }
 
 // optional npm package locator, replace default npm package locator
 // which search local node_modules folders
-npmPackageLocator: function (packageName: string) {
-  // filePath is local within the package,
-  // like:
-  //   package.json
-  //   dist/cjs/index.js
+packageLocator: function (packageName: string) {
   return Promise.resolve(
+    // filePath is local within the package,
+    // like:
+    //   package.json
+    //   dist/cjs/index.js
     function (filePath: string) {
       return Promise.resolve({
-        path: file_path,
+        path: relative_file_path_to_cwd,
         contents: file_contents_in_string
       });
     }
   };
 }
 
-// missing npm package handler
-onMissingNpmPackage: function (packageName: string) {
-  return new Promise((resolve, reject) => {
-    // you could install a package, then
-    resolve();
-    // or if cannot finish installation
-    reject(err);
-  });
+// TBD
+// on requiring a module, before tracing
+onRequiringModule: function (moduleId: string) {
+  return false; // ignore this moduleId.
+  return ['a', 'b']; // ignore this moduleId, but require module id "a" and "b" instead.
+  return 'define(...)'; // the full JavaScript content of this module, must be in AMD format.
+  // return undefined; means go on with normal tracing
 }
 */
-function trace () {
-  // track resolved moduleId to avoid file duplication
-
-  /*
-  let dependencies;
-  let depsFinder;
-  let npmPackageLocator;
-  let onMissingNpmPackage;
-
-  if (options) {
-    dependencies = options.dependencies || [];
-    depsFinder = options.depsFinder;
-    npmPackageLocator = options.npmPackageLocator || defaultLocator;
-    onMissingNpmPackage = options.onMissingNpmPackage;
-  }
-  */
-  // TODO resolve dependencies in first run.
-
+module.exports = function (opts) {
+  if (!opts) opts = {};
+  // default src folder is "src/"
+  const src = path.resolve(opts.src || 'src');
+  delete opts.src;
+  const dumber = new Dumber(opts);
 
   return through.obj(function(file, enc, cb) {
     if (file.isStream()) {
       this.emit('error', new PluginError(PLUGIN_NAME, 'Stream is not supported'));
-    }
+    } else if (file.isBuffer()) {
+      const p = path.relative(src, file.path).replace(/\\/g, '/');
+      const moduleId = p.endsWith('.js') ? p.substring(0, p.length - 3) : p;
 
-    if (file.isBuffer()) {
-      // TODO
+      console.log('')
+      dumber.capture({
+        path: file.path,
+        contents: file.contents.toString(),
+        sourceMap: file.sourceMap,
+        moduleId
+      }).then(
+        () => cb(),
+        err => this.emit('error', new PluginError(PLUGIN_NAME, err))
+      )
     } else {
-      this.push(file);
-      cb();
+      // make sure the file goes through the next gulp plugin
+      cb(null, file);
     }
-
   }, function(cb) {
     // flush
-    cb();
+    dumber.resolve().then(() => dumber.bundle()).then(
+      bundles => {
+        Object.keys(bundles).forEach(bundleName => {
+          this.push(createBundle(bundleName, bundles[bundleName]));
+        });
+        cb();
+      },
+      err => this.emit('error', new PluginError(PLUGIN_NAME, err))
+    )
   });
-}
+};
 
-module.exports = trace;
+function createBundle(bundleName, bundle) {
+  const filename = bundleName + '.js';
+  const concat = new Concat(true, filename, '\n');
+  bundle.files.forEach(file => {
+    concat.add(file.path || null, file.contents, file.sourceMap);
+  });
+
+  if (bundle.config) {
+    let config = `requirejs.config(${JSON.stringify(bundle.config)});`;
+    config.replace(/"baseUrl":/, '"baseUrl": REQUIREJS_BASE_URL ||');
+  }
+
+  return new Vinyl({
+    cwd: './',
+    base: '/',
+    path: filename,
+    contents: new Buffer(concat.content),
+    sourceMap: concat.sourceMap
+  })
+}
