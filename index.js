@@ -75,7 +75,6 @@ module.exports = function (opts) {
       const p = path.relative(src, file.path).replace(/\\/g, '/');
       const moduleId = p.endsWith('.js') ? p.substring(0, p.length - 3) : p;
 
-      console.log('')
       dumber.capture({
         path: file.path,
         contents: file.contents.toString(),
@@ -113,12 +112,15 @@ function createBundle(bundleName, bundle) {
   if (bundle.config) {
     let config = `requirejs.config(${JSON.stringify(bundle.config)});`;
     config.replace(/"baseUrl":/, '"baseUrl": REQUIREJS_BASE_URL ||');
+
+    concat.add(null, config);
   }
 
+  const cwd = path.resolve('.');
   return new Vinyl({
-    cwd: './',
-    base: '/',
-    path: filename,
+    cwd: cwd,
+    base: path.join(cwd, '__output__'),
+    path: path.join(cwd, '__output__', filename),
     contents: new Buffer(concat.content),
     sourceMap: concat.sourceMap
   })
