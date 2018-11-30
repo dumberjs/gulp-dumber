@@ -30,7 +30,7 @@
   "homepage": "https://github.com/huochunpeng/gulp-dumber#readme",
   "dependencies": {
     "concat-with-sourcemaps": "^1.1.0",
-    "dumber": "bitbucket:huochunpeng/dumber#v0.1.4",
+    "dumber": "bitbucket:huochunpeng/dumber#v0.1.5",
     "plugin-error": "^1.0.1",
     "through2": "^3.0.0",
     "vinyl": "^2.2.0"
