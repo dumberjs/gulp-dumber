@@ -75,7 +75,7 @@ module.exports = function (opts) {
       const moduleId = p.endsWith('.js') ? p.substring(0, p.length - 3) : p;
 
       dumber.capture({
-        path: file.path,
+        path: path.relative(path.resolve(), file.path).replace(/\\/g, '/'),
         contents: file.contents.toString(),
         sourceMap: file.sourceMap,
         moduleId
@@ -105,11 +105,12 @@ function createBundle(bundleName, bundle) {
   const filename = bundleName + '.js';
   const concat = new Concat(true, filename, '\n');
   bundle.files.forEach(file => {
-    concat.add(file.path || null, file.contents, file.sourceMap);
+    console.log('concat ' + file.path);
+    concat.add(file.path || null, file.contents, file.sourceMap || undefined );
   });
 
   if (bundle.config) {
-    let config = `requirejs.config(${JSON.stringify(bundle.config)});`;
+    let config = `requirejs.config(${JSON.stringify(bundle.config, null , 2)});`;
     config.replace(/"baseUrl":/, '"baseUrl": REQUIREJS_BASE_URL ||');
 
     concat.add(null, config);
@@ -121,6 +122,6 @@ function createBundle(bundleName, bundle) {
     base: path.join(cwd, '__output__'),
     path: path.join(cwd, '__output__', filename),
     contents: new Buffer(concat.content),
-    sourceMap: concat.sourceMap
+    sourceMap: concat.sourceMap ? JSON.parse(concat.sourceMap) : null
   })
 }
