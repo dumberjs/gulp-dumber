@@ -52,9 +52,8 @@ packageLocator: function (packageName: string) {
   };
 }
 
-// TBD
 // on requiring a module, before tracing
-onRequiringModule: function (moduleId: string) {
+onRequire: function (moduleId: string) {
   return false; // ignore this moduleId.
   return ['a', 'b']; // ignore this moduleId, but require module id "a" and "b" instead.
   return 'define(...)'; // the full JavaScript content of this module, must be in AMD format.
@@ -68,7 +67,7 @@ module.exports = function (opts) {
   delete opts.src;
   const dumber = new Dumber(opts);
 
-  return through.obj(function(file, enc, cb) {
+  return () => through.obj(function(file, enc, cb) {
     if (file.isStream()) {
       this.emit('error', new PluginError(PLUGIN_NAME, 'Stream is not supported'));
     } else if (file.isBuffer()) {
