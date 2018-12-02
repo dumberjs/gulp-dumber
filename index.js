@@ -105,8 +105,8 @@ function createBundle(bundleName, bundle) {
   const filename = bundleName + '.js';
   const concat = new Concat(true, filename, '\n');
   bundle.files.forEach(file => {
-    console.log('concat ' + file.path);
-    concat.add(file.path || null, file.contents, file.sourceMap || undefined );
+    const p = (file.sourceMap && file.path) ? file.path : null;
+    concat.add(p, file.contents, file.sourceMap || undefined);
   });
 
   if (bundle.config) {
