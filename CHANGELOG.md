@@ -1,3 +1,7 @@
+## [0.2.2](https://github.com/huochunpeng/gulp-dumber/compare/v0.2.1...v0.2.2) (2018-12-03)
+
+
+
 ## [0.2.1](https://github.com/huochunpeng/gulp-dumber/compare/v0.2.0...v0.2.1) (2018-12-03)
 
 
