@@ -1,3 +1,12 @@
+# [0.3.0](https://github.com/dumberjs/gulp-dumber/compare/v0.2.2...v0.3.0) (2018-12-04)
+
+
+### Features
+
+* hash output ([1dd26fe](https://github.com/dumberjs/gulp-dumber/commit/1dd26fe))
+
+
+
 ## [0.2.2](https://github.com/huochunpeng/gulp-dumber/compare/v0.2.1...v0.2.2) (2018-12-03)
 
 
