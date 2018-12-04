@@ -1,3 +1,12 @@
+# [0.4.0](https://github.com/dumberjs/gulp-dumber/compare/v0.3.0...v0.4.0) (2018-12-04)
+
+
+### Features
+
+* write manifest.json when hash is on ([4dba33e](https://github.com/dumberjs/gulp-dumber/commit/4dba33e))
+
+
+
 # [0.3.0](https://github.com/dumberjs/gulp-dumber/compare/v0.2.2...v0.3.0) (2018-12-04)
 
 
