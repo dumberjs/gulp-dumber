@@ -5,6 +5,7 @@ const Dumber = require('dumber').default;
 const Concat = require('concat-with-sourcemaps');
 const Vinyl = require('vinyl');
 const path = require('path');
+const crypto = require('crypto');
 
 const PLUGIN_NAME = 'dumber';
 
@@ -17,7 +18,14 @@ src: "my-src",
 // baseUrl for requirejs at runtime, default to "dist",
 baseUrl: "my-server/foler", or "/my/server/folder"
 
+// hash, default to false
+// Add hash for bundle file names
+// like entry-bundle.7215ee9c7d9dc229d2921a40e899ec5f.js
+hash: true,
+
 // dependencies (or deps in short)
+// This is for deps not explicitly required by your code,
+// or some package needs special treatment.
 dependencies: [
   'npm_package_not_explicitly_required_by_your_code',
   {
@@ -27,6 +35,26 @@ dependencies: [
     exports: 'jQuery.veryOld',
     wrapShim: true // optional shim wrapper
   }
+]
+
+// prepends (or prepend)
+// A list of files or direct contents to be written to entry bundle
+// before AMD loader.
+// This is the place you want to load traditional JS libs who doesn't
+// support AMD/CommonJS or ES Native Module.\
+prepends: [
+  'path/to/file.js', // must be a js file
+  'var direct = js_code;'
+]
+
+// appends (or append)
+// A list of files or direct contents to be written to entry bundle
+// after AMD loader and all modules definitions, but before
+// requirejs.config({...}).
+// Note appends are after AMD loader, means they are in AMD env.
+appends: [
+  'path/to/file.js', // must be a js file
+  'define(some_additional_module,[],function(){});'
 ]
 
 // additional deps finder, on top of standard amd+cjs deps finder
@@ -62,10 +90,24 @@ onRequire: function (moduleId: string) {
 */
 module.exports = function (opts) {
   if (!opts) opts = {};
+
   // default src folder is "src/"
   const src = path.resolve(opts.src || 'src');
   delete opts.src;
+
+  const hash = opts.hash;
+  delete opts.hash;
+
+  // TODO additional paths mapping for 'common': '../common'
+
   const dumber = new Dumber(opts);
+  const cwd = path.resolve('.');
+
+  // Note the extra wrapper () => through.obj...
+  // This is for gulp-dumber to be used repeatedly in watch mode.
+  // e.g.
+  //   const dr = gulpDumber(opts);
+  //   (...).pipe(dr()) // dr(), not dr here
 
   return () => through.obj(function(file, enc, cb) {
     if (file.isStream()) {
@@ -75,7 +117,8 @@ module.exports = function (opts) {
       const moduleId = p.endsWith('.js') ? p.substring(0, p.length - 3) : p;
 
       dumber.capture({
-        path: path.relative(path.resolve(), file.path).replace(/\\/g, '/'),
+        // path is relative to cwd
+        path: path.relative(cwd, file.path).replace(/\\/g, '/'),
         contents: file.contents.toString(),
         sourceMap: file.sourceMap,
         moduleId
@@ -88,12 +131,59 @@ module.exports = function (opts) {
       cb(null, file);
     }
   }, function(cb) {
-    // flush
+    // Stream flush
+    // This is after gulp-dumber consumes all incoming vinyl files
+    // Generates new vinyl files for bundles
     dumber.resolve().then(() => dumber.bundle()).then(
       bundles => {
+        const otherFiles = {};
+        let entryBundleFile;
+
         Object.keys(bundles).forEach(bundleName => {
-          this.push(createBundle(bundleName, bundles[bundleName]));
+          const file = createBundle(bundleName, bundles[bundleName]);
+          if (file.config) entryBundleFile = file;
+          else otherFiles[bundleName] = file;
         });
+
+        if (hash) {
+          entryBundleFile.config.paths = {};
+
+          Object.keys(otherFiles).forEach(bundleName => {
+            const file = otherFiles[bundleName];
+            const hash = generateHash(file.contents);
+            const filename = bundleName + '.' + hash + '.js';
+            file.filename = filename;
+            if (file.sourceMap) file.sourceMap.file = filename;
+            entryBundleFile.config.paths[bundleName] = filename;
+          });
+
+          const entryHash = generateHash(entryBundleFile.contents + JSON.stringify(entryBundleFile.config));
+          const entryFilename = entryBundleFile.bundleName + '.' + entryHash + '.js';
+          entryBundleFile.filename = entryFilename;
+          if (entryBundleFile.sourceMap) entryBundleFile.sourceMap.file = entryFilename;
+        }
+
+        Object.keys(otherFiles).forEach(bundleName => {
+          const file = otherFiles[bundleName];
+          this.push(new Vinyl({
+            cwd: cwd,
+            base: path.join(cwd, '__output__'),
+            path: path.join(cwd, '__output__', file.filename),
+            contents: new Buffer(file.contents),
+            sourceMap: file.sourceMap
+          }));
+        });
+
+        const rjsConfig = `\nrequirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});\n`
+
+        this.push(new Vinyl({
+          cwd: cwd,
+          base: path.join(cwd, '__output__'),
+          path: path.join(cwd, '__output__', entryBundleFile.filename),
+          contents: new Buffer(entryBundleFile.contents + rjsConfig),
+          sourceMap: entryBundleFile.sourceMap
+        }));
+
         cb();
       },
       err => this.emit('error', new PluginError(PLUGIN_NAME, err))
@@ -109,19 +199,20 @@ function createBundle(bundleName, bundle) {
     concat.add(p, file.contents, file.sourceMap || undefined);
   });
 
-  if (bundle.config) {
-    let config = `requirejs.config(${JSON.stringify(bundle.config, null , 2)});`;
-    config.replace(/"baseUrl":/, '"baseUrl": REQUIREJS_BASE_URL ||');
-
-    concat.add(null, config);
+  const file = {
+    bundleName,
+    filename,
+    contents: concat.content,
+    sourceMap: concat.sourceMap ? JSON.parse(concat.sourceMap) : null
   }
 
-  const cwd = path.resolve('.');
-  return new Vinyl({
-    cwd: cwd,
-    base: path.join(cwd, '__output__'),
-    path: path.join(cwd, '__output__', filename),
-    contents: new Buffer(concat.content),
-    sourceMap: concat.sourceMap ? JSON.parse(concat.sourceMap) : null
-  })
+  if (bundle.config) {
+    file.config = JSON.parse(JSON.stringify(bundle.config));
+  }
+
+  return file;
+}
+
+function generateHash(constents) {
+  return crypto.createHash('md5').update(constents).digest('hex');
 }
