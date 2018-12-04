@@ -1,3 +1,12 @@
+## [0.4.3](https://github.com/dumberjs/gulp-dumber/compare/v0.4.2...v0.4.3) (2018-12-04)
+
+
+### Bug Fixes
+
+* fix manifest.json write ([f975675](https://github.com/dumberjs/gulp-dumber/commit/f975675))
+
+
+
 ## [0.4.2](https://github.com/dumberjs/gulp-dumber/compare/v0.4.1...v0.4.2) (2018-12-04)
 
 
