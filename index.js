@@ -6,6 +6,7 @@ const Concat = require('concat-with-sourcemaps');
 const Vinyl = require('vinyl');
 const path = require('path');
 const crypto = require('crypto');
+const log = require('fancy-log');
 
 const PLUGIN_NAME = 'dumber';
 
@@ -167,6 +168,7 @@ module.exports = function (opts) {
           entryBundleFile.filename = entryFilename;
           if (entryBundleFile.sourceMap) entryBundleFile.sourceMap.file = entryFilename;
 
+          log('write manifest.json');
           // write manifest.json
           this.push(new Vinyl({
             cwd: cwd,
@@ -178,6 +180,7 @@ module.exports = function (opts) {
 
         Object.keys(otherFiles).forEach(bundleName => {
           const file = otherFiles[bundleName];
+          log('write ' + file.filename);
           this.push(new Vinyl({
             cwd: cwd,
             base: path.join(cwd, '__output__'),
@@ -189,6 +192,7 @@ module.exports = function (opts) {
 
         const rjsConfig = `\nrequirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});\n`
 
+        log('write ' + entryBundleFile.filename);
         this.push(new Vinyl({
           cwd: cwd,
           base: path.join(cwd, '__output__'),
