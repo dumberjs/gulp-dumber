@@ -22,6 +22,8 @@ baseUrl: "my-server/foler", or "/my/server/folder"
 // Add hash for bundle file names
 // like entry-bundle.7215ee9c7d9dc229d2921a40e899ec5f.js
 hash: true,
+// When hash is on, a manifest.json file will be written
+// {"entry-bundle": "entry-bundle.7215ee9c7d9dc229d2921a40e899ec5f.js"}
 
 // dependencies (or deps in short)
 // This is for deps not explicitly required by your code,
@@ -146,12 +148,14 @@ module.exports = function (opts) {
         });
 
         if (hash) {
+          let manifest = {};
           entryBundleFile.config.paths = {};
 
           Object.keys(otherFiles).forEach(bundleName => {
             const file = otherFiles[bundleName];
             const hash = generateHash(file.contents);
             const filename = bundleName + '.' + hash + '.js';
+            manifest[bundleName] = filename;
             file.filename = filename;
             if (file.sourceMap) file.sourceMap.file = filename;
             entryBundleFile.config.paths[bundleName] = filename;
@@ -159,8 +163,17 @@ module.exports = function (opts) {
 
           const entryHash = generateHash(entryBundleFile.contents + JSON.stringify(entryBundleFile.config));
           const entryFilename = entryBundleFile.bundleName + '.' + entryHash + '.js';
+          manifest[entryBundleFile.bundleName] = entryFilename;
           entryBundleFile.filename = entryFilename;
           if (entryBundleFile.sourceMap) entryBundleFile.sourceMap.file = entryFilename;
+
+          // write manifest.json
+          this.push(new Vinyl({
+            cwd: cwd,
+            base: path.join(cwd, '__output__'),
+            path: path.join(cwd, '__output__', 'manifest.json'),
+            contents: JSON.stringify(manifest)
+          }));
         }
 
         Object.keys(otherFiles).forEach(bundleName => {
