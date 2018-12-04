@@ -174,7 +174,7 @@ module.exports = function (opts) {
             cwd: cwd,
             base: path.join(cwd, '__output__'),
             path: path.join(cwd, '__output__', 'manifest.json'),
-            contents: JSON.stringify(manifest)
+            contents: new Buffer(JSON.stringify(manifest))
           }));
         }
 
