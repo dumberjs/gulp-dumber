@@ -105,6 +105,7 @@ module.exports = function (opts) {
 
   const dumber = new Dumber(opts);
   const cwd = path.resolve('.');
+  const outputBase = path.join(cwd, '__output__');
 
   // Note the extra wrapper () => through.obj...
   // This is for gulp-dumber to be used repeatedly in watch mode.
@@ -117,7 +118,7 @@ module.exports = function (opts) {
       this.emit('error', new PluginError(PLUGIN_NAME, 'Stream is not supported'));
     } else if (file.isBuffer()) {
       const p = path.relative(src, file.path).replace(/\\/g, '/');
-      const moduleId = p.endsWith('.js') ? p.substring(0, p.length - 3) : p;
+      const moduleId = p.endsWith('.js') ? p.slice(0, -3) : p;
 
       dumber.capture({
         // path is relative to cwd
@@ -174,9 +175,9 @@ module.exports = function (opts) {
           log('write manifest.json');
           // write manifest.json
           this.push(new Vinyl({
-            cwd: cwd,
-            base: path.join(cwd, '__output__'),
-            path: path.join(cwd, '__output__', 'manifest.json'),
+            cwd,
+            base: outputBase,
+            path: path.join(outputBase, 'manifest.json'),
             contents: new Buffer(JSON.stringify(manifest, null, 2))
           }));
         }
@@ -185,9 +186,9 @@ module.exports = function (opts) {
           const file = otherFiles[bundleName];
           log('write ' + file.filename);
           this.push(new Vinyl({
-            cwd: cwd,
-            base: path.join(cwd, '__output__'),
-            path: path.join(cwd, '__output__', file.filename),
+            cwd,
+            base: outputBase,
+            path: path.join(outputBase, file.filename),
             contents: new Buffer(file.contents),
             sourceMap: file.sourceMap
           }));
@@ -197,9 +198,9 @@ module.exports = function (opts) {
 
         log('write ' + entryBundleFile.filename);
         this.push(new Vinyl({
-          cwd: cwd,
-          base: path.join(cwd, '__output__'),
-          path: path.join(cwd, '__output__', entryBundleFile.filename),
+          cwd,
+          base: outputBase,
+          path: path.join(outputBase, entryBundleFile.filename),
           contents: new Buffer(entryBundleFile.contents + rjsConfig),
           sourceMap: entryBundleFile.sourceMap
         }));
