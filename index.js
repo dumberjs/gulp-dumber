@@ -158,8 +158,12 @@ module.exports = function (opts) {
             if (file.sourceMap) file.sourceMap.file = filename;
           });
 
-          // save persisted manifest
-          entryBundleFile.config.paths = manifest;
+          // get persisted manifest plus updates
+          entryBundleFile.config.paths = {};
+          Object.keys(manifest).forEach(bundleName => {
+            if (bundleName === entryBundleFile.bundleName) return;
+            entryBundleFile.config.paths[bundleName] = manifest[bundleName];
+          });
 
           const entryHash = generateHash(entryBundleFile.contents + JSON.stringify(entryBundleFile.config));
           const entryFilename = entryBundleFile.bundleName + '.' + entryHash + '.js';
