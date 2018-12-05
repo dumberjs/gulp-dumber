@@ -1,3 +1,12 @@
+## [0.4.6](https://github.com/dumberjs/gulp-dumber/compare/v0.4.5...v0.4.6) (2018-12-05)
+
+
+### Bug Fixes
+
+* skip entry bundle in config.paths ([ca7cf88](https://github.com/dumberjs/gulp-dumber/commit/ca7cf88))
+
+
+
 ## [0.4.5](https://github.com/dumberjs/gulp-dumber/compare/v0.4.4...v0.4.5) (2018-12-05)
 
 
