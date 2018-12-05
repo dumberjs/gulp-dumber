@@ -7,7 +7,6 @@ const Vinyl = require('vinyl');
 const path = require('path');
 const crypto = require('crypto');
 const log = require('fancy-log');
-
 const PLUGIN_NAME = 'dumber';
 
 /*
@@ -100,6 +99,7 @@ module.exports = function (opts) {
 
   const hash = opts.hash;
   delete opts.hash;
+  const manifest = {};
 
   // TODO additional paths mapping for 'common': '../common'
 
@@ -149,9 +149,6 @@ module.exports = function (opts) {
         });
 
         if (hash) {
-          let manifest = {};
-          entryBundleFile.config.paths = {};
-
           Object.keys(otherFiles).forEach(bundleName => {
             const file = otherFiles[bundleName];
             const hash = generateHash(file.contents);
@@ -159,8 +156,10 @@ module.exports = function (opts) {
             manifest[bundleName] = filename;
             file.filename = filename;
             if (file.sourceMap) file.sourceMap.file = filename;
-            entryBundleFile.config.paths[bundleName] = filename;
           });
+
+          // save persisted manifest
+          entryBundleFile.config.paths = manifest;
 
           const entryHash = generateHash(entryBundleFile.contents + JSON.stringify(entryBundleFile.config));
           const entryFilename = entryBundleFile.bundleName + '.' + entryHash + '.js';
