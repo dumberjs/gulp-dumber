@@ -113,7 +113,7 @@ module.exports = function (opts) {
   //   const dr = gulpDumber(opts);
   //   (...).pipe(dr()) // dr(), not dr here
 
-  return () => through.obj(function(file, enc, cb) {
+  const gulpBumber = () => through.obj(function(file, enc, cb) {
     if (file.isStream()) {
       this.emit('error', new PluginError(PLUGIN_NAME, 'Stream is not supported'));
     } else if (file.isBuffer()) {
@@ -172,7 +172,7 @@ module.exports = function (opts) {
           entryBundleFile.filename = entryFilename;
           if (entryBundleFile.sourceMap) entryBundleFile.sourceMap.file = entryFilename;
 
-          log('write manifest.json');
+          log('Write manifest.json');
           // write manifest.json
           this.push(new Vinyl({
             cwd,
@@ -184,7 +184,7 @@ module.exports = function (opts) {
 
         Object.keys(otherFiles).forEach(bundleName => {
           const file = otherFiles[bundleName];
-          log('write ' + file.filename);
+          log('Write ' + file.filename);
           this.push(new Vinyl({
             cwd,
             base: outputBase,
@@ -196,7 +196,7 @@ module.exports = function (opts) {
 
         const rjsConfig = `\nrequirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});\n`
 
-        log('write ' + entryBundleFile.filename);
+        log('Write ' + entryBundleFile.filename);
         this.push(new Vinyl({
           cwd,
           base: outputBase,
@@ -210,6 +210,9 @@ module.exports = function (opts) {
       err => this.emit('error', new PluginError(PLUGIN_NAME, err))
     )
   });
+
+  gulpBumber.clearCache = () => dumber.clearCache();
+  return gulpBumber;
 };
 
 function createBundle(bundleName, bundle) {
