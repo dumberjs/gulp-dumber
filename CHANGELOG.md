@@ -1,3 +1,12 @@
+# [0.5.0](https://github.com/dumberjs/gulp-dumber/compare/v0.4.7...v0.5.0) (2018-12-06)
+
+
+### Features
+
+* expose clearCache func ([d5599c1](https://github.com/dumberjs/gulp-dumber/commit/d5599c1))
+
+
+
 ## [0.4.7](https://github.com/dumberjs/gulp-dumber/compare/v0.4.6...v0.4.7) (2018-12-05)
 
 
