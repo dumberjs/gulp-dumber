@@ -22,8 +22,20 @@ baseUrl: "my-server/foler", or "/my/server/folder"
 // Add hash for bundle file names
 // like entry-bundle.7215ee9c7d9dc229d2921a40e899ec5f.js
 hash: true,
-// When hash is on, a manifest.json file will be written
-// {"entry-bundle": "entry-bundle.7215ee9c7d9dc229d2921a40e899ec5f.js"}
+
+// onManifest callback
+// When hash is on, onManifest callback receives
+// {
+//   "entry-bundle.js": "entry-bundle.7215ee9c7d9dc229d2921a40e899ec5f.js",
+//   "other-bundle.js": "other-bundle.xxxxyyyzzzz.js"
+// }
+// When hash if off, onManifest callback receives
+// {
+//   "entry-bundle.js": "entry-bundle.js",
+//   "other-bundle.js": "other-bundle.js"
+// }
+// User can use this filename map to update index.html
+onManifest: function(filenameMap) {...}
 
 // dependencies (or deps in short)
 // This is for deps not explicitly required by your code,
@@ -99,11 +111,14 @@ module.exports = function (opts) {
 
   const hash = opts.hash;
   delete opts.hash;
+
+  const onManifest = opts.onManifest;
+  delete opts.onManifest;
   const manifest = {};
 
   // TODO additional paths mapping for 'common': '../common'
 
-  const dumber = new Dumber(opts);
+  const dumber = new Dumber(opts, opts.mock);
   const cwd = path.resolve('.');
   const outputBase = path.join(cwd, '__output__');
 
@@ -115,7 +130,7 @@ module.exports = function (opts) {
 
   const gulpBumber = () => through.obj(function(file, enc, cb) {
     if (file.isStream()) {
-      this.emit('error', new PluginError(PLUGIN_NAME, 'Stream is not supported'));
+      this.emit('error', new PluginError(PLUGIN_NAME, 'Streaming is not supported'));
     } else if (file.isBuffer()) {
       const p = path.relative(src, file.path).replace(/\\/g, '/');
       const moduleId = p.endsWith('.js') ? p.slice(0, -3) : p;
@@ -147,6 +162,7 @@ module.exports = function (opts) {
           const file = createBundle(bundleName, bundles[bundleName]);
           if (file.config) entryBundleFile = file;
           else otherFiles[bundleName] = file;
+          manifest[bundleName] = file.filename;
         });
 
         if (hash) {
@@ -171,15 +187,14 @@ module.exports = function (opts) {
           manifest[entryBundleFile.bundleName] = entryFilename;
           entryBundleFile.filename = entryFilename;
           if (entryBundleFile.sourceMap) entryBundleFile.sourceMap.file = entryFilename;
+        }
 
-          log('Write manifest.json');
-          // write manifest.json
-          this.push(new Vinyl({
-            cwd,
-            base: outputBase,
-            path: path.join(outputBase, 'manifest.json'),
-            contents: new Buffer(JSON.stringify(manifest, null, 2))
-          }));
+        if (onManifest) {
+          const withExt = {};
+          Object.keys(manifest).forEach(bundleName => {
+            withExt[bundleName + '.js'] = manifest[bundleName];
+          })
+          onManifest(withExt);
         }
 
         Object.keys(otherFiles).forEach(bundleName => {
@@ -194,7 +209,8 @@ module.exports = function (opts) {
           }));
         });
 
-        const rjsConfig = `\nrequirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});\n`
+        let rjsConfig = `;\nrequirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});\n`
+        rjsConfig = rjsConfig.replace('"baseUrl":', '"baseUrl": REQUIREJS_BASE_URL ||');
 
         log('Write ' + entryBundleFile.filename);
         this.push(new Vinyl({
@@ -217,7 +233,7 @@ module.exports = function (opts) {
 
 function createBundle(bundleName, bundle) {
   const filename = bundleName + '.js';
-  const concat = new Concat(true, filename, '\n');
+  const concat = new Concat(true, filename, ';\n');
   bundle.files.forEach(file => {
     const p = (file.sourceMap && file.path) ? file.path : null;
     concat.add(p, file.contents, file.sourceMap || undefined);
