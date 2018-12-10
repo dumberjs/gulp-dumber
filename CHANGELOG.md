@@ -1,3 +1,12 @@
+# [0.6.0](https://github.com/dumberjs/gulp-dumber/compare/v0.5.0...v0.6.0) (2018-12-10)
+
+
+### Features
+
+* change manifest to a callback, so output would not be a fix of json and js files ([7550f05](https://github.com/dumberjs/gulp-dumber/commit/7550f05))
+
+
+
 # [0.5.0](https://github.com/dumberjs/gulp-dumber/compare/v0.4.7...v0.5.0) (2018-12-06)
 
 
