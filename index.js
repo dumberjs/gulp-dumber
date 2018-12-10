@@ -209,7 +209,7 @@ module.exports = function (opts) {
           }));
         });
 
-        let rjsConfig = `;\nrequirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});\n`
+        let rjsConfig = `\nrequirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});\n`
         rjsConfig = rjsConfig.replace('"baseUrl":', '"baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL :');
 
         log('Write ' + entryBundleFile.filename);
@@ -233,7 +233,7 @@ module.exports = function (opts) {
 
 function createBundle(bundleName, bundle) {
   const filename = bundleName + '.js';
-  const concat = new Concat(true, filename, ';\n');
+  const concat = new Concat(true, filename, '\n');
   bundle.files.forEach(file => {
     const p = (file.sourceMap && file.path) ? file.path : null;
     concat.add(p, file.contents, file.sourceMap || undefined);
