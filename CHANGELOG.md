@@ -1,3 +1,12 @@
+## [0.6.1](https://github.com/dumberjs/gulp-dumber/compare/v0.6.0...v0.6.1) (2018-12-10)
+
+
+### Bug Fixes
+
+* be compatible in strict mode ([63a9055](https://github.com/dumberjs/gulp-dumber/commit/63a9055))
+
+
+
 # [0.6.0](https://github.com/dumberjs/gulp-dumber/compare/v0.5.0...v0.6.0) (2018-12-10)
 
 
