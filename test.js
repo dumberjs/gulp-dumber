@@ -78,7 +78,7 @@ define('foo/index',[],function(){});define('foo',['foo/index'],function(m){retur
 ;
 define.switchToUserSpace();;
 requirejs.config({
-  "baseUrl": REQUIREJS_BASE_URL || "dist",
+  "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "dist",
   "bundles": {}
 });
 `);
@@ -150,7 +150,7 @@ define.switchToUserSpace();`);
 define.switchToUserSpace();;
 define('app',['foo'],function(){});;
 requirejs.config({
-  "baseUrl": REQUIREJS_BASE_URL || "dist",
+  "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "dist",
   "bundles": {
     "vendor-bundle": {
       "user": [],
@@ -202,7 +202,7 @@ define('page/one',['bar'],function(){});`);
 define.switchToUserSpace();;
 define('app',['foo'],function(){});;
 requirejs.config({
-  "baseUrl": REQUIREJS_BASE_URL || "dist",
+  "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "dist",
   "bundles": {
     "vendor-bundle": {
       "user": [],
@@ -259,7 +259,7 @@ define.switchToUserSpace();;
 define('app',['foo', 'bar'],function(){});;
 define('help',[],function(){});;
 requirejs.config({
-  "baseUrl": REQUIREJS_BASE_URL || "dist",
+  "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "dist",
   "bundles": {
     "vendor-bundle": {
       "user": [],

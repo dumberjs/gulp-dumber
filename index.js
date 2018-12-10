@@ -210,7 +210,7 @@ module.exports = function (opts) {
         });
 
         let rjsConfig = `;\nrequirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});\n`
-        rjsConfig = rjsConfig.replace('"baseUrl":', '"baseUrl": REQUIREJS_BASE_URL ||');
+        rjsConfig = rjsConfig.replace('"baseUrl":', '"baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL :');
 
         log('Write ' + entryBundleFile.filename);
         this.push(new Vinyl({
