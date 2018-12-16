@@ -1,3 +1,12 @@
+## [0.6.3](https://github.com/dumberjs/gulp-dumber/compare/v0.6.2...v0.6.3) (2018-12-16)
+
+
+### Bug Fixes
+
+* fix outdated tests ([814bf64](https://github.com/dumberjs/gulp-dumber/commit/814bf64))
+
+
+
 ## [0.6.2](https://github.com/dumberjs/gulp-dumber/compare/v0.6.1...v0.6.2) (2018-12-10)
 
 
