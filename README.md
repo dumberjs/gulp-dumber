@@ -2,4 +2,6 @@
 
 Gulp plugin for dumber bundler.
 
-TODO tests, docs and examples
+Check out early examples https://github.com/dumberjs/examples
+
+TODO docs
