@@ -1,3 +1,12 @@
+## [0.6.4](https://github.com/dumberjs/gulp-dumber/compare/v0.6.3...v0.6.4) (2018-12-17)
+
+
+### Features
+
+* support local wasm file ([a28ce5c](https://github.com/dumberjs/gulp-dumber/commit/a28ce5c))
+
+
+
 ## [0.6.3](https://github.com/dumberjs/gulp-dumber/compare/v0.6.2...v0.6.3) (2018-12-16)
 
 
