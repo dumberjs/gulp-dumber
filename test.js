@@ -1,5 +1,6 @@
 'use strict';
 const test = require('tape');
+const fs = require('fs');
 const Vinyl = require('vinyl');
 const streamArray = require('stream-array');
 const streamAssert = require('stream-assert');
@@ -46,7 +47,9 @@ test('gulpDumber bundles js', t => {
   const dr = createGulpDumber({
     'node_modules/foo/package.json': '{"name":"foo","main":"index"}',
     'node_modules/foo/index.js': 'define([],function(){});',
-    'node_modules/dumber-module-loader/dist/index.js': 'dumber-module-loader;'
+    'node_modules/dumber-module-loader/dist/index.js': 'dumber-module-loader;',
+    'node_modules/base64-arraybuffer/package.json': '{"name":"base64-arraybuffer","main":"index"}',
+    'node_modules/base64-arraybuffer/index.js': 'define([],function(){});',
   }, {
     cache: false,
     onManifest: function(m) {
@@ -61,7 +64,14 @@ test('gulpDumber bundles js', t => {
     contents: new Buffer("define(['foo'],function(){});")
   });
 
-  streamArray([a])
+  const b = new Vinyl({
+    cwd,
+    base: path.join(cwd, 'src'),
+    path: path.join(cwd, 'src', 'fib.wasm'),
+    contents: fs.readFileSync(path.join(cwd, 'fib.wasm'))
+  });
+
+  streamArray([a, b])
   .pipe(dr())
   .pipe(streamAssert.length(1))
   .pipe(streamAssert.first(f => {
@@ -73,7 +83,9 @@ test('gulpDumber bundles js', t => {
     t.equal(f.contents.toString(), `dumber-module-loader;
 define.switchToUserSpace();
 define('app',['foo'],function(){});
+define('raw!fib.wasm',['base64-arraybuffer'],function(a){return {arrayBuffer: function() {return Promise.resolve(a.decode("AGFzbQEAAAABBgFgAX8BfwMCAQAHBwEDZmliAAAKHwEdACAAQQJIBEBBAQ8LIABBAmsQACAAQQFrEABqDws="));}}});
 define.switchToPackageSpace();
+define('base64-arraybuffer/index',[],function(){});define('base64-arraybuffer',['base64-arraybuffer/index'],function(m){return m;});
 define('foo/index',[],function(){});define('foo',['foo/index'],function(m){return m;});
 define.switchToUserSpace();
 requirejs.config({

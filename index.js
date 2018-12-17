@@ -138,7 +138,7 @@ module.exports = function (opts) {
       dumber.capture({
         // path is relative to cwd
         path: path.relative(cwd, file.path).replace(/\\/g, '/'),
-        contents: file.contents.toString(),
+        contents: file.contents.toString(file.extname === '.wasm' ? 'base64' : undefined),
         sourceMap: file.sourceMap,
         moduleId
       }).then(
