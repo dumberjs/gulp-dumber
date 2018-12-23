@@ -1,3 +1,12 @@
+## [0.6.5](https://github.com/dumberjs/gulp-dumber/compare/v0.6.4...v0.6.5) (2018-12-23)
+
+
+### Features
+
+* support requirejs paths config, support above surface module ([55f1865](https://github.com/dumberjs/gulp-dumber/commit/55f1865))
+
+
+
 ## [0.6.4](https://github.com/dumberjs/gulp-dumber/compare/v0.6.3...v0.6.4) (2018-12-17)
 
 
