@@ -90,6 +90,75 @@ define('foo/index',[],function(){});define('foo',['foo/index'],function(m){retur
 define.switchToUserSpace();
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
+  "paths": {
+    "../src": ""
+  },
+  "bundles": {}
+});
+`);
+
+  }))
+  .pipe(streamAssert.end(t.end));
+});
+
+test('gulpDumber bundles js with above surface module', t => {
+  let filenameMap;
+
+  const dr = createGulpDumber({
+    'node_modules/foo/package.json': '{"name":"foo","main":"index"}',
+    'node_modules/foo/index.js': 'define([],function(){});',
+    'node_modules/dumber-module-loader/dist/index.js': 'dumber-module-loader;'
+  }, {
+    cache: false,
+    paths: {
+      foo: 'common/foo'
+    },
+    onManifest: function(m) {
+      filenameMap = m;
+    }
+  });
+
+  const a = new Vinyl({
+    cwd,
+    base: path.join(cwd, 'src'),
+    path: path.join(cwd, 'src', 'app.js'),
+    contents: new Buffer("define(['foo'],function(){});")
+  });
+
+  const b = new Vinyl({
+    cwd,
+    base: path.join(cwd, 'test'),
+    path: path.join(cwd, 'test', 'app.spec.js'),
+    contents: new Buffer("define(['../src/app'],function(){});")
+  });
+
+  const c = new Vinyl({
+    cwd,
+    base: path.join(cwd, 'src'),
+    path: path.join(cwd, 'src', 'common', 'foo.js'),
+    contents: new Buffer("define([],function(){});")
+  });
+
+  streamArray([a, b, c])
+  .pipe(dr())
+  .pipe(streamAssert.length(1))
+  .pipe(streamAssert.first(f => {
+    t.deepEqual(filenameMap, {
+      'entry-bundle.js': 'entry-bundle.js'
+    });
+
+    t.equal(f.path, path.join(cwd, '__output__', 'entry-bundle.js'));
+    t.equal(f.contents.toString(), `dumber-module-loader;
+define.switchToUserSpace();
+define('../test/app.spec',['../src/app'],function(){});
+define('app',['foo'],function(){});
+define('common/foo',[],function(){});
+requirejs.config({
+  "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
+  "paths": {
+    "foo": "common/foo",
+    "../src": ""
+  },
   "bundles": {}
 });
 `);
@@ -161,6 +230,10 @@ define.switchToUserSpace();
 define('app',['foo'],function(){});
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
+  "paths": {
+    "../src": "",
+    "vendor-bundle": "${filenameMap['vendor-bundle.js']}"
+  },
   "bundles": {
     "vendor-bundle": {
       "user": [],
@@ -169,9 +242,6 @@ requirejs.config({
         "foo/index"
       ]
     }
-  },
-  "paths": {
-    "vendor-bundle": "${filenameMap['vendor-bundle.js']}"
   }
 });
 `);
@@ -211,6 +281,11 @@ define.switchToUserSpace();
 define('app',['foo'],function(){});
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
+  "paths": {
+    "../src": "",
+    "vendor-bundle": "${filenameMap['vendor-bundle.js']}",
+    "page-bundle": "${filenameMap['page-bundle.js']}"
+  },
   "bundles": {
     "vendor-bundle": {
       "user": [],
@@ -227,10 +302,6 @@ requirejs.config({
       ],
       "package": []
     }
-  },
-  "paths": {
-    "vendor-bundle": "${filenameMap['vendor-bundle.js']}",
-    "page-bundle": "${filenameMap['page-bundle.js']}"
   }
 });
 `);
@@ -268,6 +339,11 @@ define('app',['foo', 'bar'],function(){});
 define('help',[],function(){});
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
+  "paths": {
+    "../src": "",
+    "vendor-bundle": "${filenameMap['vendor-bundle.js']}",
+    "page-bundle": "${filenameMap['page-bundle.js']}"
+  },
   "bundles": {
     "vendor-bundle": {
       "user": [],
@@ -284,10 +360,6 @@ requirejs.config({
       ],
       "package": []
     }
-  },
-  "paths": {
-    "vendor-bundle": "${filenameMap['vendor-bundle.js']}",
-    "page-bundle": "${filenameMap['page-bundle.js']}"
   }
 });
 `);

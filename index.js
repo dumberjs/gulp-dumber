@@ -106,7 +106,8 @@ module.exports = function (opts) {
   if (!opts) opts = {};
 
   // default src folder is "src/"
-  const src = path.resolve(opts.src || 'src');
+  const _src = opts.src || 'src';
+  const src = path.resolve(_src);
   delete opts.src;
 
   const hash = opts.hash;
@@ -116,7 +117,14 @@ module.exports = function (opts) {
   delete opts.onManifest;
   const manifest = {};
 
-  // TODO additional paths mapping for 'common': '../common'
+  if (!opts.paths) opts.paths = {};
+  // set {'../src':''}, this is to support above surface module to import a source file
+  // e.g.
+  // in file test/app.spec.js
+  // import App from '../src/app';
+  //
+  // this shotcut will resolve '../src/app' into 'app'
+  opts.paths['../' + _src] = '';
 
   const dumber = new Dumber(opts, opts.mock);
   const cwd = path.resolve('.');
@@ -176,7 +184,6 @@ module.exports = function (opts) {
           });
 
           // get persisted manifest plus updates
-          entryBundleFile.config.paths = {};
           Object.keys(manifest).forEach(bundleName => {
             if (bundleName === entryBundleFile.bundleName) return;
             entryBundleFile.config.paths[bundleName] = manifest[bundleName];
