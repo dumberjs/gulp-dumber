@@ -189,7 +189,7 @@ module.exports = function (opts) {
             entryBundleFile.config.paths[bundleName] = manifest[bundleName];
           });
 
-          const entryHash = generateHash(entryBundleFile.contents + JSON.stringify(entryBundleFile.config));
+          const entryHash = generateHash(entryBundleFile.contents + JSON.stringify(entryBundleFile.config) + entryBundleFile.appendContents);
           const entryFilename = entryBundleFile.bundleName + '.' + entryHash + '.js';
           manifest[entryBundleFile.bundleName] = entryFilename;
           entryBundleFile.filename = entryFilename;
@@ -224,7 +224,7 @@ module.exports = function (opts) {
           cwd,
           base: outputBase,
           path: path.join(outputBase, entryBundleFile.filename),
-          contents: new Buffer(entryBundleFile.contents + rjsConfig),
+          contents: new Buffer(entryBundleFile.contents + rjsConfig + entryBundleFile.appendContents),
           sourceMap: entryBundleFile.sourceMap
         }));
 
@@ -246,9 +246,17 @@ function createBundle(bundleName, bundle) {
     concat.add(p, file.contents, file.sourceMap || undefined);
   });
 
+  let appendContents = '';
+  if (bundle.appendFiles) {
+    bundle.appendFiles.forEach(file => {
+      appendContents += file.contents + '\n';
+    });
+  }
+
   const file = {
     bundleName,
     filename,
+    appendContents,
     contents: concat.content,
     sourceMap: concat.sourceMap ? JSON.parse(concat.sourceMap) : null
   }

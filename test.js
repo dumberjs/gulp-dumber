@@ -115,7 +115,10 @@ test('gulpDumber bundles js with above surface module', t => {
     },
     onManifest: function(m) {
       filenameMap = m;
-    }
+    },
+    appends: [
+      "requirejs(['../test/app.spec']);"
+    ]
   });
 
   const a = new Vinyl({
@@ -161,8 +164,8 @@ requirejs.config({
   },
   "bundles": {}
 });
+requirejs(['../test/app.spec']);
 `);
-
   }))
   .pipe(streamAssert.end(t.end));
 });
