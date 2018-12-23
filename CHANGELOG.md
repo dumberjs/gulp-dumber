@@ -1,3 +1,12 @@
+# [0.7.0](https://github.com/dumberjs/gulp-dumber/compare/v0.6.5...v0.7.0) (2018-12-23)
+
+
+### Features
+
+* write appends after config ([57905af](https://github.com/dumberjs/gulp-dumber/commit/57905af))
+
+
+
 ## [0.6.5](https://github.com/dumberjs/gulp-dumber/compare/v0.6.4...v0.6.5) (2018-12-23)
 
 
