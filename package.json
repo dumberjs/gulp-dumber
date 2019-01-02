@@ -21,7 +21,8 @@
   },
   "keywords": [
     "dumber",
-    "bundler"
+    "bundler",
+    "gulpplugin"
   ],
   "author": "Chunpeng Huo",
   "license": "MIT",
