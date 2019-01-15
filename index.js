@@ -246,7 +246,7 @@ function createBundle(bundleName, bundle) {
       concat.add(null, file.contents);
     } else {
       const sourceRoot = path.dirname(path.relative(cwd, file.path)).replace(/\\/g, '/');
-      const sourceMap = JSON.parse(JSON.stringifyfile.sourceMap);
+      const sourceMap = JSON.parse(JSON.stringify(file.sourceMap));
       sourceMap.sourceRoot = sourceRoot;
       concat.add(file.path, file.contents, sourceMap);
     }
