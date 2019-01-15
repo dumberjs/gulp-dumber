@@ -1,3 +1,12 @@
+## [0.7.2](https://github.com/dumberjs/gulp-dumber/compare/v0.7.1...v0.7.2) (2019-01-15)
+
+
+### Bug Fixes
+
+* fat finger error ([65b6859](https://github.com/dumberjs/gulp-dumber/commit/65b6859))
+
+
+
 ## [0.7.1](https://github.com/dumberjs/gulp-dumber/compare/v0.7.0...v0.7.1) (2019-01-15)
 
 
