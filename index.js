@@ -8,6 +8,7 @@ const path = require('path');
 const crypto = require('crypto');
 const log = require('fancy-log');
 const PLUGIN_NAME = 'dumber';
+const cwd = path.resolve('.');
 
 /*
 Optional options:
@@ -127,7 +128,6 @@ module.exports = function (opts) {
   opts.paths['../' + _src] = '';
 
   const dumber = new Dumber(opts, opts.mock);
-  const cwd = path.resolve('.');
   const outputBase = path.join(cwd, '__output__');
 
   // Note the extra wrapper () => through.obj...
@@ -242,12 +242,20 @@ function createBundle(bundleName, bundle) {
   const filename = bundleName + '.js';
   const concat = new Concat(true, filename, '\n');
   bundle.files.forEach(file => {
-    const p = (file.sourceMap && file.path) ? file.path : null;
-    concat.add(p, file.contents, file.sourceMap || undefined);
+    if (!file.sourceMap || !file.path) {
+      concat.add(null, file.contents);
+    } else {
+      const sourceRoot = path.dirname(path.relative(cwd, file.path)).replace(/\\/g, '/');
+      const sourceMap = JSON.parse(JSON.stringifyfile.sourceMap);
+      sourceMap.sourceRoot = sourceRoot;
+      concat.add(file.path, file.contents, sourceMap);
+    }
   });
 
   let appendContents = '';
   if (bundle.appendFiles) {
+    // No source map support for append yet.
+    // Too lazy to support it.
     bundle.appendFiles.forEach(file => {
       appendContents += file.contents + '\n';
     });
