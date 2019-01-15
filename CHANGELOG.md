@@ -1,3 +1,12 @@
+## [0.7.1](https://github.com/dumberjs/gulp-dumber/compare/v0.7.0...v0.7.1) (2019-01-15)
+
+
+### Features
+
+* separate source maps using sourceRoot ([48c11e1](https://github.com/dumberjs/gulp-dumber/commit/48c11e1))
+
+
+
 # [0.7.0](https://github.com/dumberjs/gulp-dumber/compare/v0.6.5...v0.7.0) (2018-12-23)
 
 
