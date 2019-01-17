@@ -94,9 +94,9 @@ requirejs.config({
     "../src": ""
   },
   "bundles": {}
-});
-`);
+});`);
 
+    t.notOk(f.sourceMap);
   }))
   .pipe(streamAssert.end(t.end));
 });
@@ -164,8 +164,8 @@ requirejs.config({
   },
   "bundles": {}
 });
-requirejs(['../test/app.spec']);
-`);
+requirejs(['../test/app.spec']);`);
+    t.notOk(f.sourceMap);
   }))
   .pipe(streamAssert.end(t.end));
 });
@@ -246,8 +246,7 @@ requirejs.config({
       ]
     }
   }
-});
-`);
+});`);
   }));
 
 
@@ -306,8 +305,7 @@ requirejs.config({
       "package": []
     }
   }
-});
-`);
+});`);
       }
     }));
   }, 100);
@@ -364,10 +362,63 @@ requirejs.config({
       "package": []
     }
   }
-});
-`);
+});`);
     }))
     .pipe(streamAssert.end(t.end));
   }, 200);
+});
+
+test('gulpDumber does basic sourceMap', t => {
+  let filenameMap;
+
+  const dr = createGulpDumber({
+    'node_modules/dumber-module-loader/dist/index.js': 'dumber-module-loader;'
+  }, {
+    cache: false,
+    onManifest: function(m) {
+      filenameMap = m;
+    }
+  });
+
+  const a = new Vinyl({
+    cwd,
+    base: path.join(cwd, 'src'),
+    path: path.join(cwd, 'src', 'app.js'),
+    contents: new Buffer("define([],function(){});"),
+    sourceMap: {
+      version: 3,
+      file: 'app.js',
+      sources: ['app.js'],
+      mappings: 'AAAA',
+      sourcesContent: ["define([],function(){});"]
+    }
+  });
+
+
+  streamArray([a])
+  .pipe(dr())
+  .pipe(streamAssert.length(1))
+  .pipe(streamAssert.first(f => {
+    t.deepEqual(filenameMap, {
+      'entry-bundle.js': 'entry-bundle.js'
+    });
+
+    t.equal(f.path, path.join(cwd, '__output__', 'entry-bundle.js'));
+    t.equal(f.contents.toString(), `dumber-module-loader;
+define.switchToUserSpace();
+define('app',[],function(){});
+requirejs.config({
+  "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
+  "paths": {
+    "../src": ""
+  },
+  "bundles": {}
+});`);
+    t.ok(f.sourceMap);
+    t.deepEqual(f.sourceMap.sources, ['node_modules/dumber-module-loader/dist/index.js', 'src/app.js']);
+    t.equal(f.sourceMap.file, 'entry-bundle.js');
+    t.equal(f.sourceMap.sourcesContent.length, 2);
+  }))
+  .pipe(streamAssert.end(t.end));
 });
 

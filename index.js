@@ -130,6 +130,9 @@ module.exports = function (opts) {
   const dumber = new Dumber(opts, opts.mock);
   const outputBase = path.join(cwd, '__output__');
 
+  // listen to the stream to set needsSourceMap
+  let needsSourceMap = false;
+
   // Note the extra wrapper () => through.obj...
   // This is for gulp-dumber to be used repeatedly in watch mode.
   // e.g.
@@ -142,6 +145,8 @@ module.exports = function (opts) {
     } else if (file.isBuffer()) {
       const p = path.relative(src, file.path).replace(/\\/g, '/');
       const moduleId = p.endsWith('.js') ? p.slice(0, -3) : p;
+
+      if (file.sourceMap) needsSourceMap = true;
 
       dumber.capture({
         // path is relative to cwd
@@ -167,7 +172,7 @@ module.exports = function (opts) {
         let entryBundleFile;
 
         Object.keys(bundles).forEach(bundleName => {
-          const file = createBundle(bundleName, bundles[bundleName]);
+          const file = createBundle(bundleName, bundles[bundleName], needsSourceMap);
           if (file.config) entryBundleFile = file;
           else otherFiles[bundleName] = file;
           manifest[bundleName] = file.filename;
@@ -212,20 +217,36 @@ module.exports = function (opts) {
             base: outputBase,
             path: path.join(outputBase, file.filename),
             contents: new Buffer(file.contents),
-            sourceMap: file.sourceMap
+            sourceMap: needsSourceMap ? file.sourceMap : null
           }));
         });
 
-        let rjsConfig = `\nrequirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});\n`
+        let rjsConfig = `requirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});`
         rjsConfig = rjsConfig.replace('"baseUrl":', '"baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL :');
 
         log('Write ' + entryBundleFile.filename);
+
+        const concat = new Concat(needsSourceMap, entryBundleFile.filename, '\n');
+        if (needsSourceMap) {
+          concat.add('__' + entryBundleFile.filename, entryBundleFile.contents, entryBundleFile.sourceMap);
+          concat.add(null, rjsConfig);
+          if (entryBundleFile.appendContents) {
+            concat.add('__append_' + entryBundleFile.filename, entryBundleFile.appendContents, entryBundleFile.appendSourceMap);
+          }
+        } else {
+          concat.add(null, entryBundleFile.contents);
+          concat.add(null, rjsConfig);
+          if (entryBundleFile.appendContents) {
+            concat.add(null, entryBundleFile.appendContents);
+          }
+        }
+
         this.push(new Vinyl({
           cwd,
           base: outputBase,
           path: path.join(outputBase, entryBundleFile.filename),
-          contents: new Buffer(entryBundleFile.contents + rjsConfig + entryBundleFile.appendContents),
-          sourceMap: entryBundleFile.sourceMap
+          contents: concat.content,
+          sourceMap: needsSourceMap && concat.sourceMap ? JSON.parse(concat.sourceMap) : null
         }));
 
         cb();
@@ -238,34 +259,55 @@ module.exports = function (opts) {
   return gulpBumber;
 };
 
-function createBundle(bundleName, bundle) {
-  const filename = bundleName + '.js';
-  const concat = new Concat(true, filename, '\n');
-  bundle.files.forEach(file => {
-    if (!file.sourceMap || !file.path) {
+function createBundle(bundleName, bundle, needsSourceMap) {
+  function concatFile(concat, file) {
+    if (!needsSourceMap || !file.path) {
       concat.add(null, file.contents);
-    } else {
-      const sourceRoot = path.dirname(path.relative(cwd, file.path)).replace(/\\/g, '/');
-      const sourceMap = JSON.parse(JSON.stringify(file.sourceMap));
-      sourceMap.sourceRoot = sourceRoot;
-      concat.add(file.path, file.contents, sourceMap);
+      return;
     }
-  });
 
-  let appendContents = '';
+    let sourceMap = file.sourceMap && JSON.parse(JSON.stringify(file.sourceMap));
+    if (!sourceMap) {
+      // add an empty source map
+      const p = file.path.replace(/\\/g, '/');
+      sourceMap = {
+        version: 3,
+        file: p,
+        sources: [p],
+        mappings: '',
+        sourcesContent: [file.contents],
+        names: []
+      };
+    }
+
+    if (sourceMap && sourceMap.mappings) {
+      // for valid sourceMap coming from dumber, set sourceRoot
+      const sourceRoot = path.dirname(path.relative(cwd, file.path)).replace(/\\/g, '/');
+      sourceMap.sourceRoot = sourceRoot;
+    }
+
+    if (sourceMap) {
+      concat.add(file.path, file.contents, sourceMap);
+    } else {
+      concat.add(null, file.contents);
+    }
+  }
+
+  const filename = bundleName + '.js';
+  const concat = new Concat(needsSourceMap, filename, '\n');
+  bundle.files.forEach(file => concatFile(concat, file));
+
+  const appendConcat = new Concat(needsSourceMap, filename, '\n');
   if (bundle.appendFiles) {
-    // No source map support for append yet.
-    // Too lazy to support it.
-    bundle.appendFiles.forEach(file => {
-      appendContents += file.contents + '\n';
-    });
+    bundle.appendFiles.forEach(file => concatFile(appendConcat, file));
   }
 
   const file = {
     bundleName,
     filename,
-    appendContents,
-    contents: concat.content,
+    appendContents: appendConcat.content.toString(),
+    appendSourceMap: appendConcat.sourceMap ? JSON.parse(appendConcat.sourceMap) : null,
+    contents: concat.content.toString(),
     sourceMap: concat.sourceMap ? JSON.parse(concat.sourceMap) : null
   }
 
