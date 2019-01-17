@@ -1,3 +1,12 @@
+## [0.7.3](https://github.com/dumberjs/gulp-dumber/compare/v0.7.2...v0.7.3) (2019-01-17)
+
+
+### Bug Fixes
+
+* improve sourceMap handling ([a996bcc](https://github.com/dumberjs/gulp-dumber/commit/a996bcc))
+
+
+
 ## [0.7.2](https://github.com/dumberjs/gulp-dumber/compare/v0.7.1...v0.7.2) (2019-01-15)
 
 
