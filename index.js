@@ -166,93 +166,103 @@ module.exports = function (opts) {
     // Stream flush
     // This is after gulp-dumber consumes all incoming vinyl files
     // Generates new vinyl files for bundles
-    dumber.resolve().then(() => dumber.bundle()).then(
-      bundles => {
-        const otherFiles = {};
-        let entryBundleFile;
+    dumber.resolve().then(() => dumber.bundle()).then(bundles => {
+      const otherFiles = {};
+      let entryBundleFile;
 
-        Object.keys(bundles).forEach(bundleName => {
-          const file = createBundle(bundleName, bundles[bundleName], needsSourceMap);
-          if (file.config) entryBundleFile = file;
-          else otherFiles[bundleName] = file;
-          manifest[bundleName] = file.filename;
-        });
+      Object.keys(bundles).forEach(bundleName => {
+        const file = createBundle(bundleName, bundles[bundleName], needsSourceMap);
+        if (file.config) entryBundleFile = file;
+        else otherFiles[bundleName] = file;
+        manifest[bundleName] = file.filename;
+      });
 
-        if (hash) {
-          Object.keys(otherFiles).forEach(bundleName => {
-            const file = otherFiles[bundleName];
-            const hash = generateHash(file.contents);
-            const filename = bundleName + '.' + hash + '.js';
-            manifest[bundleName] = filename;
-            file.filename = filename;
-            if (file.sourceMap) file.sourceMap.file = filename;
-          });
-
-          // get persisted manifest plus updates
-          Object.keys(manifest).forEach(bundleName => {
-            if (bundleName === entryBundleFile.bundleName) return;
-            entryBundleFile.config.paths[bundleName] = manifest[bundleName];
-          });
-
-          const entryHash = generateHash(entryBundleFile.contents + JSON.stringify(entryBundleFile.config) + entryBundleFile.appendContents);
-          const entryFilename = entryBundleFile.bundleName + '.' + entryHash + '.js';
-          manifest[entryBundleFile.bundleName] = entryFilename;
-          entryBundleFile.filename = entryFilename;
-          if (entryBundleFile.sourceMap) entryBundleFile.sourceMap.file = entryFilename;
-        }
-
-        if (onManifest) {
-          const withExt = {};
-          Object.keys(manifest).forEach(bundleName => {
-            withExt[bundleName + '.js'] = manifest[bundleName];
-          })
-          onManifest(withExt);
-        }
-
+      if (hash) {
         Object.keys(otherFiles).forEach(bundleName => {
           const file = otherFiles[bundleName];
-          log('Write ' + file.filename);
-          this.push(new Vinyl({
-            cwd,
-            base: outputBase,
-            path: path.join(outputBase, file.filename),
-            contents: new Buffer(file.contents),
-            sourceMap: needsSourceMap ? file.sourceMap : null
-          }));
+          const hash = generateHash(file.contents);
+          const filename = bundleName + '.' + hash + '.js';
+          manifest[bundleName] = filename;
+          file.filename = filename;
+          if (file.sourceMap) file.sourceMap.file = filename;
         });
 
-        let rjsConfig = `requirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});`
-        rjsConfig = rjsConfig.replace('"baseUrl":', '"baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL :');
+        // get persisted manifest plus updates
+        Object.keys(manifest).forEach(bundleName => {
+          if (bundleName === entryBundleFile.bundleName) return;
+          entryBundleFile.config.paths[bundleName] = manifest[bundleName];
+        });
 
-        log('Write ' + entryBundleFile.filename);
+        const entryHash = generateHash(entryBundleFile.contents + JSON.stringify(entryBundleFile.config) + entryBundleFile.appendContents);
+        const entryFilename = entryBundleFile.bundleName + '.' + entryHash + '.js';
+        manifest[entryBundleFile.bundleName] = entryFilename;
+        entryBundleFile.filename = entryFilename;
+        if (entryBundleFile.sourceMap) entryBundleFile.sourceMap.file = entryFilename;
+      }
 
-        const concat = new Concat(needsSourceMap, entryBundleFile.filename, '\n');
-        if (needsSourceMap) {
-          concat.add('__' + entryBundleFile.filename, entryBundleFile.contents, entryBundleFile.sourceMap);
-          concat.add(null, rjsConfig);
-          if (entryBundleFile.appendContents) {
-            concat.add('__append_' + entryBundleFile.filename, entryBundleFile.appendContents, entryBundleFile.appendSourceMap);
-          }
-        } else {
-          concat.add(null, entryBundleFile.contents);
-          concat.add(null, rjsConfig);
-          if (entryBundleFile.appendContents) {
-            concat.add(null, entryBundleFile.appendContents);
-          }
-        }
+      if (onManifest) {
+        const withExt = {};
+        Object.keys(manifest).forEach(bundleName => {
+          withExt[bundleName + '.js'] = manifest[bundleName];
+        })
+        onManifest(withExt);
+      }
 
-        this.push(new Vinyl({
+      Object.keys(otherFiles).forEach(bundleName => {
+        const file = otherFiles[bundleName];
+        log('Write ' + file.filename);
+        const f = new Vinyl({
           cwd,
           base: outputBase,
-          path: path.join(outputBase, entryBundleFile.filename),
-          contents: concat.content,
-          sourceMap: needsSourceMap && concat.sourceMap ? JSON.parse(concat.sourceMap) : null
-        }));
+          path: path.join(outputBase, file.filename),
+          contents: new Buffer(file.contents)
+        });
 
-        cb();
-      },
-      err => this.emit('error', new PluginError(PLUGIN_NAME, err))
-    )
+        if (needsSourceMap && file.sourceMap) {
+          f.sourceMap = file.sourceMap;
+        }
+
+        this.push(f);
+      });
+
+      let rjsConfig = `requirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});`
+      rjsConfig = rjsConfig.replace('"baseUrl":', '"baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL :');
+
+      log('Write ' + entryBundleFile.filename);
+
+      const concat = new Concat(needsSourceMap, entryBundleFile.filename, '\n');
+      if (needsSourceMap) {
+        concat.add('__' + entryBundleFile.filename, entryBundleFile.contents, entryBundleFile.sourceMap);
+        concat.add(null, rjsConfig);
+        if (entryBundleFile.appendContents) {
+          concat.add('__append_' + entryBundleFile.filename, entryBundleFile.appendContents, entryBundleFile.appendSourceMap);
+        }
+      } else {
+        concat.add(null, entryBundleFile.contents);
+        concat.add(null, rjsConfig);
+        if (entryBundleFile.appendContents) {
+          concat.add(null, entryBundleFile.appendContents);
+        }
+      }
+
+      const ef = new Vinyl({
+        cwd,
+        base: outputBase,
+        path: path.join(outputBase, entryBundleFile.filename),
+        contents: concat.content
+      });
+
+      if (needsSourceMap && concat.sourceMap) {
+        ef.sourceMap = JSON.parse(concat.sourceMap);
+      }
+
+      this.push(ef);
+
+      cb();
+    })
+    .catch(err => {
+      this.emit('error', new PluginError(PLUGIN_NAME, err));
+    });
   });
 
   gulpBumber.clearCache = () => dumber.clearCache();

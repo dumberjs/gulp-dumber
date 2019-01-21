@@ -47,7 +47,7 @@ test('gulpDumber bundles js', t => {
   const dr = createGulpDumber({
     'node_modules/foo/package.json': '{"name":"foo","main":"index"}',
     'node_modules/foo/index.js': 'define([],function(){});',
-    'node_modules/dumber-module-loader/dist/index.js': 'dumber-module-loader;',
+    'node_modules/dumber-module-loader/dist/index.debug.js': 'dumber-module-loader;',
     'node_modules/base64-arraybuffer/package.json': '{"name":"base64-arraybuffer","main":"index"}',
     'node_modules/base64-arraybuffer/index.js': 'define([],function(){});',
   }, {
@@ -73,6 +73,10 @@ test('gulpDumber bundles js', t => {
 
   streamArray([a, b])
   .pipe(dr())
+  .once('error', function (err) {
+    t.fail(err.message);
+    t.end();
+  })
   .pipe(streamAssert.length(1))
   .pipe(streamAssert.first(f => {
     t.deepEqual(filenameMap, {
@@ -107,7 +111,7 @@ test('gulpDumber bundles js with above surface module', t => {
   const dr = createGulpDumber({
     'node_modules/foo/package.json': '{"name":"foo","main":"index"}',
     'node_modules/foo/index.js': 'define([],function(){});',
-    'node_modules/dumber-module-loader/dist/index.js': 'dumber-module-loader;'
+    'node_modules/dumber-module-loader/dist/index.debug.js': 'dumber-module-loader;'
   }, {
     cache: false,
     paths: {
@@ -144,6 +148,10 @@ test('gulpDumber bundles js with above surface module', t => {
 
   streamArray([a, b, c])
   .pipe(dr())
+  .once('error', function (err) {
+    t.fail(err.message);
+    t.end();
+  })
   .pipe(streamAssert.length(1))
   .pipe(streamAssert.first(f => {
     t.deepEqual(filenameMap, {
@@ -174,7 +182,7 @@ test('gulpDumber does not support streaming', t => {
   const dr = createGulpDumber({
     'node_modules/foo/package.json': '{"name":"foo","main":"index"}',
     'node_modules/foo/index.js': 'define([],function(){});',
-    'node_modules/dumber-module-loader/dist/index.js': 'dumber-module-loader;'
+    'node_modules/dumber-module-loader/dist/index.debug.js': 'dumber-module-loader;'
   }, {cache: false});
 
   gulp.src('index.js', {buffer: false})
@@ -193,7 +201,7 @@ test('gulpDumber does code splitting, and progressive bundling in watch mode', t
     'node_modules/foo/index.js': 'define([],function(){});',
     'node_modules/bar/package.json': '{"name":"bar","main":"index"}',
     'node_modules/bar/index.js': 'define([],function(){});',
-    'node_modules/dumber-module-loader/dist/index.js': 'dumber-module-loader;'
+    'node_modules/dumber-module-loader/dist/index.debug.js': 'dumber-module-loader;'
   }, {
     hash: true,
     cache: false,
@@ -216,6 +224,10 @@ test('gulpDumber does code splitting, and progressive bundling in watch mode', t
 
   streamArray([a])
   .pipe(dr())
+  .once('error', function (err) {
+    t.fail(err.message);
+    t.end();
+  })
   .pipe(streamAssert.length(2))
   .pipe(streamAssert.first(f => {
     t.ok(filenameMap['app-bundle.js'].match(/^app-bundle\.[a-f0-9]{32}\.js$/));
@@ -260,6 +272,10 @@ requirejs.config({
 
     streamArray([b])
     .pipe(dr())
+    .once('error', function (err) {
+      t.fail(err.message);
+      t.end();
+    })
     .pipe(streamAssert.length(3))
     .pipe(streamAssert.all(f => {
       t.ok(filenameMap['app-bundle.js'].match(/^app-bundle\.[a-f0-9]{32}\.js$/));
@@ -327,6 +343,10 @@ requirejs.config({
 
     streamArray([c, d])
     .pipe(dr())
+    .once('error', function (err) {
+      t.fail(err.message);
+      t.end();
+    })
     .pipe(streamAssert.length(1))
     .pipe(streamAssert.first(f => {
       t.ok(filenameMap['app-bundle.js'].match(/^app-bundle\.[a-f0-9]{32}\.js$/));
@@ -372,7 +392,7 @@ test('gulpDumber does basic sourceMap', t => {
   let filenameMap;
 
   const dr = createGulpDumber({
-    'node_modules/dumber-module-loader/dist/index.js': 'dumber-module-loader;'
+    'node_modules/dumber-module-loader/dist/index.debug.js': 'dumber-module-loader;'
   }, {
     cache: false,
     onManifest: function(m) {
@@ -397,6 +417,10 @@ test('gulpDumber does basic sourceMap', t => {
 
   streamArray([a])
   .pipe(dr())
+  .once('error', function (err) {
+    t.fail(err.message);
+    t.end();
+  })
   .pipe(streamAssert.length(1))
   .pipe(streamAssert.first(f => {
     t.deepEqual(filenameMap, {
@@ -415,7 +439,7 @@ requirejs.config({
   "bundles": {}
 });`);
     t.ok(f.sourceMap);
-    t.deepEqual(f.sourceMap.sources, ['node_modules/dumber-module-loader/dist/index.js', 'src/app.js']);
+    t.deepEqual(f.sourceMap.sources, ['node_modules/dumber-module-loader/dist/index.debug.js', 'src/app.js']);
     t.equal(f.sourceMap.file, 'entry-bundle.js');
     t.equal(f.sourceMap.sourcesContent.length, 2);
   }))
