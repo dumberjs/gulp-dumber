@@ -1,3 +1,12 @@
+## [0.7.4](https://github.com/dumberjs/gulp-dumber/compare/v0.7.3...v0.7.4) (2019-01-21)
+
+
+### Bug Fixes
+
+* don't add null sourceMap to vinyl file ([94a3d13](https://github.com/dumberjs/gulp-dumber/commit/94a3d13))
+
+
+
 ## [0.7.3](https://github.com/dumberjs/gulp-dumber/compare/v0.7.2...v0.7.3) (2019-01-17)
 
 
