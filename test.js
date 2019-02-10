@@ -61,7 +61,7 @@ test('gulpDumber bundles js', t => {
     cwd,
     base: path.join(cwd, 'src'),
     path: path.join(cwd, 'src', 'app.js'),
-    contents: new Buffer("define(['foo'],function(){});")
+    contents: Buffer.from("define(['foo'],function(){});")
   });
 
   const b = new Vinyl({
@@ -129,21 +129,21 @@ test('gulpDumber bundles js with above surface module', t => {
     cwd,
     base: path.join(cwd, 'src'),
     path: path.join(cwd, 'src', 'app.js'),
-    contents: new Buffer("define(['foo'],function(){});")
+    contents: Buffer.from("define(['foo'],function(){});")
   });
 
   const b = new Vinyl({
     cwd,
     base: path.join(cwd, 'test'),
     path: path.join(cwd, 'test', 'app.spec.js'),
-    contents: new Buffer("define(['../src/app'],function(){});")
+    contents: Buffer.from("define(['../src/app'],function(){});")
   });
 
   const c = new Vinyl({
     cwd,
     base: path.join(cwd, 'src'),
     path: path.join(cwd, 'src', 'common', 'foo.js'),
-    contents: new Buffer("define([],function(){});")
+    contents: Buffer.from("define([],function(){});")
   });
 
   streamArray([a, b, c])
@@ -219,7 +219,7 @@ test('gulpDumber does code splitting, and progressive bundling in watch mode', t
     cwd,
     base: path.join(cwd, 'src'),
     path: path.join(cwd, 'src', 'app.js'),
-    contents: new Buffer("define(['foo'],function(){});")
+    contents: Buffer.from("define(['foo'],function(){});")
   });
 
   streamArray([a])
@@ -267,7 +267,7 @@ requirejs.config({
       cwd,
       base: path.join(cwd, 'src'),
       path: path.join(cwd, 'src', 'page/one.js'),
-      contents: new Buffer("define(['bar'],function(){});")
+      contents: Buffer.from("define(['bar'],function(){});")
     });
 
     streamArray([b])
@@ -331,14 +331,14 @@ requirejs.config({
       cwd,
       base: path.join(cwd, 'src'),
       path: path.join(cwd, 'src', 'app.js'),
-      contents: new Buffer("define(['foo', 'bar'],function(){});")
+      contents: Buffer.from("define(['foo', 'bar'],function(){});")
     });
 
     const d = new Vinyl({
       cwd,
       base: path.join(cwd, 'src'),
       path: path.join(cwd, 'src', 'help.js'),
-      contents: new Buffer("define([],function(){});")
+      contents: Buffer.from("define([],function(){});")
     });
 
     streamArray([c, d])
@@ -404,7 +404,7 @@ test('gulpDumber does basic sourceMap', t => {
     cwd,
     base: path.join(cwd, 'src'),
     path: path.join(cwd, 'src', 'app.js'),
-    contents: new Buffer("define([],function(){});"),
+    contents: Buffer.from("define([],function(){});"),
     sourceMap: {
       version: 3,
       file: 'app.js',

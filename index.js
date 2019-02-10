@@ -215,7 +215,7 @@ module.exports = function (opts) {
           cwd,
           base: outputBase,
           path: path.join(outputBase, file.filename),
-          contents: new Buffer(file.contents)
+          contents: Buffer.from(file.contents)
         });
 
         if (needsSourceMap && file.sourceMap) {
