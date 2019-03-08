@@ -78,9 +78,9 @@ depsFinder: function (filename: string, file_contents: string) {
   // or return a promise to resolve deps
 }
 
-// optional npm package locator, replace default npm package locator
+// optional npm package file reader, replace default npm package file reader
 // which search local node_modules folders
-packageLocator: function (packageName: string) {
+packageFileReader: function (packageName: string) {
   return Promise.resolve(
     // filePath is local within the package,
     // like:

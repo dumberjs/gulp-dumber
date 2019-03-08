@@ -8,7 +8,7 @@ const gulp = require('gulp');
 const gulpDumber = require('./index');
 const {contentOrFile} = require('dumber/dist/shared');
 const path = require('path');
-const _defaultLocator = require('dumber/dist/package-locators/default').default;
+const _defaultFileReader = require('dumber/dist/package-file-reader/default').default;
 const cwd = process.cwd();
 
 function mockResolve(path) {
@@ -23,8 +23,8 @@ function buildReadFile(fakeFs = {}) {
   };
 }
 
-function mockLocator(fakeReader) {
-  return packageConfig => _defaultLocator(packageConfig, {resolve: mockResolve, readFile: fakeReader});
+function mockReader(fakeReader) {
+  return packageConfig => _defaultFileReader(packageConfig, {resolve: mockResolve, readFile: fakeReader});
 }
 
 function mockContentOrFile(fakeReader) {
@@ -33,7 +33,7 @@ function mockContentOrFile(fakeReader) {
 
 function createGulpDumber(fakeFs = {}, opts = {}) {
   const fakeReader = buildReadFile(fakeFs);
-  opts.packageLocator = mockLocator(fakeReader);
+  opts.packageFileReader = mockReader(fakeReader);
   opts.mock = {
     resolve: mockResolve,
     contentOrFile: mockContentOrFile(fakeReader)
