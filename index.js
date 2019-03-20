@@ -146,13 +146,20 @@ module.exports = function (opts) {
       const p = path.relative(src, file.path).replace(/\\/g, '/');
       const moduleId = p.endsWith('.js') ? p.slice(0, -3) : p;
 
-      if (file.sourceMap) needsSourceMap = true;
+      let sourceMap;
+      if (file.sourceMap) {
+        needsSourceMap = true;
+        sourceMap = JSON.parse(JSON.stringify(file.sourceMap));
+        // clean up paths in sourceMap, make all paths relative to cwd
+        sourceMap.file = relativeToCwd(file, sourceMap.file);
+        sourceMap.sources = sourceMap.sources.map(p => relativeToCwd(file, p));
+      }
 
       dumber.capture({
         // path is relative to cwd
         path: path.relative(cwd, file.path).replace(/\\/g, '/'),
         contents: file.contents.toString(file.extname === '.wasm' ? 'base64' : undefined),
-        sourceMap: file.sourceMap,
+        sourceMap,
         moduleId
       }).then(
         () => cb(),
@@ -254,6 +261,9 @@ module.exports = function (opts) {
 
       if (needsSourceMap && concat.sourceMap) {
         ef.sourceMap = JSON.parse(concat.sourceMap);
+        // assume user of gulp-dumber writes bundler file with one-level dest only.
+        // like gulp.dest('dist') but not gulp.dest('deep/dist');
+        ef.sourceMap.sourceRoot = '..';
       }
 
       this.push(ef);
@@ -290,12 +300,6 @@ function createBundle(bundleName, bundle, needsSourceMap) {
       };
     }
 
-    if (sourceMap && sourceMap.mappings) {
-      // for valid sourceMap coming from dumber, set sourceRoot
-      const sourceRoot = path.dirname(path.relative(cwd, file.path)).replace(/\\/g, '/');
-      sourceMap.sourceRoot = sourceRoot;
-    }
-
     if (sourceMap) {
       concat.add(file.path, file.contents, sourceMap);
     } else {
@@ -330,4 +334,8 @@ function createBundle(bundleName, bundle, needsSourceMap) {
 
 function generateHash(constents) {
   return crypto.createHash('md5').update(constents).digest('hex');
+}
+
+function relativeToCwd(file, aPath) {
+  return path.relative(cwd, path.join(file.base, aPath)).replace(/\\/g, '/');
 }
