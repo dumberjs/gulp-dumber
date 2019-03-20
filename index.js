@@ -227,6 +227,9 @@ module.exports = function (opts) {
 
         if (needsSourceMap && file.sourceMap) {
           f.sourceMap = file.sourceMap;
+          // assume user of gulp-dumber writes bundler file with one-level dest only.
+          // like gulp.dest('dist') but not gulp.dest('deep/dist');
+          f.sourceMap.sourceRoot = '..';
         }
 
         this.push(f);
