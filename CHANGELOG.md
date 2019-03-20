@@ -1,3 +1,12 @@
+## [0.10.1](https://github.com/dumberjs/gulp-dumber/compare/v0.10.0...v0.10.1) (2019-03-20)
+
+
+### Bug Fixes
+
+* cleanup source map path ([c8d071b](https://github.com/dumberjs/gulp-dumber/commit/c8d071b))
+
+
+
 # [0.10.0](https://github.com/dumberjs/gulp-dumber/compare/v0.9.0...v0.10.0) (2019-03-19)
 
 
