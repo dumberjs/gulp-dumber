@@ -1,3 +1,12 @@
+## [0.10.2](https://github.com/dumberjs/gulp-dumber/compare/v0.10.1...v0.10.2) (2019-03-20)
+
+
+### Bug Fixes
+
+* missed sourceRoot on non-entry bundle files ([b261108](https://github.com/dumberjs/gulp-dumber/commit/b261108))
+
+
+
 ## [0.10.1](https://github.com/dumberjs/gulp-dumber/compare/v0.10.0...v0.10.1) (2019-03-20)
 
 
