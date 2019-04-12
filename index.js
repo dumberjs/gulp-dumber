@@ -229,7 +229,7 @@ module.exports = function (opts) {
           f.sourceMap = file.sourceMap;
           // assume user of gulp-dumber writes bundler file with one-level dest only.
           // like gulp.dest('dist') but not gulp.dest('deep/dist');
-          f.sourceMap.sourceRoot = '..';
+          f.sourceMap.sourceRoot = '../';
         }
 
         this.push(f);
@@ -266,7 +266,7 @@ module.exports = function (opts) {
         ef.sourceMap = JSON.parse(concat.sourceMap);
         // assume user of gulp-dumber writes bundler file with one-level dest only.
         // like gulp.dest('dist') but not gulp.dest('deep/dist');
-        ef.sourceMap.sourceRoot = '..';
+        ef.sourceMap.sourceRoot = '../';
       }
 
       this.push(ef);
