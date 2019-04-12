@@ -1,3 +1,12 @@
+## [0.10.3](https://github.com/dumberjs/gulp-dumber/compare/v0.10.2...v0.10.3) (2019-04-12)
+
+
+### Bug Fixes
+
+* fix sourceMap.sourceRoot compatibility ([9d58eeb](https://github.com/dumberjs/gulp-dumber/commit/9d58eeb))
+
+
+
 ## [0.10.2](https://github.com/dumberjs/gulp-dumber/compare/v0.10.1...v0.10.2) (2019-03-20)
 
 
