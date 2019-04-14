@@ -284,27 +284,8 @@ module.exports = function (opts) {
 
 function createBundle(bundleName, bundle, needsSourceMap) {
   function concatFile(concat, file) {
-    if (!needsSourceMap || !file.path) {
-      concat.add(null, file.contents);
-      return;
-    }
-
-    let sourceMap = file.sourceMap && JSON.parse(JSON.stringify(file.sourceMap));
-    if (!sourceMap) {
-      // add an empty source map
-      const p = file.path.replace(/\\/g, '/');
-      sourceMap = {
-        version: 3,
-        file: p,
-        sources: [p],
-        mappings: '',
-        sourcesContent: [file.contents],
-        names: []
-      };
-    }
-
-    if (sourceMap) {
-      concat.add(file.path, file.contents, sourceMap);
+    if (needsSourceMap && file.path) {
+      concat.add(file.path, file.contents, file.sourceMap || undefined);
     } else {
       concat.add(null, file.contents);
     }
