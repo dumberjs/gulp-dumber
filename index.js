@@ -1,5 +1,5 @@
 'use strict';
-const through = require('through2');
+const {Transform} = require('stream');
 const PluginError = require('plugin-error');
 const Dumber = require('dumber').default;
 const Concat = require('concat-with-sourcemaps');
@@ -139,143 +139,147 @@ module.exports = function (opts) {
   //   const dr = gulpDumber(opts);
   //   (...).pipe(dr()) // dr(), not dr here
 
-  const gulpBumber = () => through.obj(function(file, enc, cb) {
-    if (file.isStream()) {
-      this.emit('error', new PluginError(PLUGIN_NAME, 'Streaming is not supported'));
-    } else if (file.isBuffer()) {
-      const p = path.relative(src, file.path).replace(/\\/g, '/');
-      const moduleId = p.endsWith('.js') ? p.slice(0, -3) : p;
+  const gulpBumber = () => new Transform({
+    objectMode: true,
+    transform: function(file, enc, cb) {
+      if (file.isStream()) {
+        this.emit('error', new PluginError(PLUGIN_NAME, 'Streaming is not supported'));
+      } else if (file.isBuffer()) {
+        const p = path.relative(src, file.path).replace(/\\/g, '/');
+        const moduleId = p.endsWith('.js') ? p.slice(0, -3) : p;
 
-      let sourceMap;
-      if (file.sourceMap) {
-        needsSourceMap = true;
-        sourceMap = JSON.parse(JSON.stringify(file.sourceMap));
-        // clean up paths in sourceMap, make all paths relative to cwd
-        sourceMap.file = relativeToCwd(file, sourceMap.file);
-        sourceMap.sources = sourceMap.sources.map(p => relativeToCwd(file, p));
+        let sourceMap;
+        if (file.sourceMap) {
+          needsSourceMap = true;
+          sourceMap = JSON.parse(JSON.stringify(file.sourceMap));
+          // clean up paths in sourceMap, make all paths relative to cwd
+          sourceMap.file = relativeToCwd(file, sourceMap.file);
+          sourceMap.sources = sourceMap.sources.map(p => relativeToCwd(file, p));
+        }
+
+        dumber.capture({
+          // path is relative to cwd
+          path: path.relative(cwd, file.path).replace(/\\/g, '/'),
+          contents: file.contents.toString(file.extname === '.wasm' ? 'base64' : undefined),
+          sourceMap,
+          moduleId
+        }).then(
+          () => cb(),
+          err => this.emit('error', new PluginError(PLUGIN_NAME, err))
+        )
+      } else {
+        // make sure the file goes through the next gulp plugin
+        cb(null, file);
       }
+    },
+    flush: function(cb) {
+      // Stream flush
+      // This is after gulp-dumber consumes all incoming vinyl files
+      // Generates new vinyl files for bundles
+      dumber.resolve().then(() => dumber.bundle()).then(bundles => {
+        const otherFiles = {};
+        let entryBundleFile;
 
-      dumber.capture({
-        // path is relative to cwd
-        path: path.relative(cwd, file.path).replace(/\\/g, '/'),
-        contents: file.contents.toString(file.extname === '.wasm' ? 'base64' : undefined),
-        sourceMap,
-        moduleId
-      }).then(
-        () => cb(),
-        err => this.emit('error', new PluginError(PLUGIN_NAME, err))
-      )
-    } else {
-      // make sure the file goes through the next gulp plugin
-      cb(null, file);
-    }
-  }, function(cb) {
-    // Stream flush
-    // This is after gulp-dumber consumes all incoming vinyl files
-    // Generates new vinyl files for bundles
-    dumber.resolve().then(() => dumber.bundle()).then(bundles => {
-      const otherFiles = {};
-      let entryBundleFile;
+        Object.keys(bundles).forEach(bundleName => {
+          const file = createBundle(bundleName, bundles[bundleName], needsSourceMap);
+          if (file.config) entryBundleFile = file;
+          else otherFiles[bundleName] = file;
+          manifest[bundleName] = file.filename;
+        });
 
-      Object.keys(bundles).forEach(bundleName => {
-        const file = createBundle(bundleName, bundles[bundleName], needsSourceMap);
-        if (file.config) entryBundleFile = file;
-        else otherFiles[bundleName] = file;
-        manifest[bundleName] = file.filename;
-      });
+        if (hash) {
+          Object.keys(otherFiles).forEach(bundleName => {
+            const file = otherFiles[bundleName];
+            const hash = generateHash(file.contents);
+            const filename = bundleName + '.' + hash + '.js';
+            manifest[bundleName] = filename;
+            file.filename = filename;
+            if (file.sourceMap) file.sourceMap.file = filename;
+          });
 
-      if (hash) {
+          // get persisted manifest plus updates
+          Object.keys(manifest).forEach(bundleName => {
+            if (bundleName === entryBundleFile.bundleName) return;
+            entryBundleFile.config.paths[bundleName] = manifest[bundleName];
+          });
+
+          const entryHash = generateHash(entryBundleFile.contents + JSON.stringify(entryBundleFile.config) + entryBundleFile.appendContents);
+          const entryFilename = entryBundleFile.bundleName + '.' + entryHash + '.js';
+          manifest[entryBundleFile.bundleName] = entryFilename;
+          entryBundleFile.filename = entryFilename;
+          if (entryBundleFile.sourceMap) entryBundleFile.sourceMap.file = entryFilename;
+        }
+
+        if (onManifest) {
+          const withExt = {};
+          Object.keys(manifest).forEach(bundleName => {
+            withExt[bundleName + '.js'] = manifest[bundleName];
+          })
+          onManifest(withExt);
+        }
+
         Object.keys(otherFiles).forEach(bundleName => {
           const file = otherFiles[bundleName];
-          const hash = generateHash(file.contents);
-          const filename = bundleName + '.' + hash + '.js';
-          manifest[bundleName] = filename;
-          file.filename = filename;
-          if (file.sourceMap) file.sourceMap.file = filename;
+          log('Write ' + file.filename);
+          const f = new Vinyl({
+            cwd,
+            base: outputBase,
+            path: path.join(outputBase, file.filename),
+            contents: Buffer.from(file.contents)
+          });
+
+          if (needsSourceMap && file.sourceMap) {
+            f.sourceMap = file.sourceMap;
+            // assume user of gulp-dumber writes bundler file with one-level dest only.
+            // like gulp.dest('dist') but not gulp.dest('deep/dist');
+            f.sourceMap.sourceRoot = '../';
+          }
+
+          this.push(f);
         });
 
-        // get persisted manifest plus updates
-        Object.keys(manifest).forEach(bundleName => {
-          if (bundleName === entryBundleFile.bundleName) return;
-          entryBundleFile.config.paths[bundleName] = manifest[bundleName];
-        });
+        let rjsConfig = `requirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});`
+        rjsConfig = rjsConfig.replace('"baseUrl":', '"baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL :');
 
-        const entryHash = generateHash(entryBundleFile.contents + JSON.stringify(entryBundleFile.config) + entryBundleFile.appendContents);
-        const entryFilename = entryBundleFile.bundleName + '.' + entryHash + '.js';
-        manifest[entryBundleFile.bundleName] = entryFilename;
-        entryBundleFile.filename = entryFilename;
-        if (entryBundleFile.sourceMap) entryBundleFile.sourceMap.file = entryFilename;
-      }
+        log('Write ' + entryBundleFile.filename);
 
-      if (onManifest) {
-        const withExt = {};
-        Object.keys(manifest).forEach(bundleName => {
-          withExt[bundleName + '.js'] = manifest[bundleName];
-        })
-        onManifest(withExt);
-      }
+        const concat = new Concat(needsSourceMap, entryBundleFile.filename, '\n');
+        if (needsSourceMap) {
+          concat.add('__' + entryBundleFile.filename, entryBundleFile.contents, entryBundleFile.sourceMap);
+          concat.add(null, rjsConfig);
+          if (entryBundleFile.appendContents) {
+            concat.add('__append_' + entryBundleFile.filename, entryBundleFile.appendContents, entryBundleFile.appendSourceMap);
+          }
+        } else {
+          concat.add(null, entryBundleFile.contents);
+          concat.add(null, rjsConfig);
+          if (entryBundleFile.appendContents) {
+            concat.add(null, entryBundleFile.appendContents);
+          }
+        }
 
-      Object.keys(otherFiles).forEach(bundleName => {
-        const file = otherFiles[bundleName];
-        log('Write ' + file.filename);
-        const f = new Vinyl({
+        const ef = new Vinyl({
           cwd,
           base: outputBase,
-          path: path.join(outputBase, file.filename),
-          contents: Buffer.from(file.contents)
+          path: path.join(outputBase, entryBundleFile.filename),
+          contents: concat.content
         });
 
-        if (needsSourceMap && file.sourceMap) {
-          f.sourceMap = file.sourceMap;
+        if (needsSourceMap && concat.sourceMap) {
+          ef.sourceMap = JSON.parse(concat.sourceMap);
           // assume user of gulp-dumber writes bundler file with one-level dest only.
           // like gulp.dest('dist') but not gulp.dest('deep/dist');
-          f.sourceMap.sourceRoot = '../';
+          ef.sourceMap.sourceRoot = '../';
         }
 
-        this.push(f);
+        this.push(ef);
+
+        cb();
+      })
+      .catch(err => {
+        this.emit('error', new PluginError(PLUGIN_NAME, err));
       });
-
-      let rjsConfig = `requirejs.config(${JSON.stringify(entryBundleFile.config, null , 2)});`
-      rjsConfig = rjsConfig.replace('"baseUrl":', '"baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL :');
-
-      log('Write ' + entryBundleFile.filename);
-
-      const concat = new Concat(needsSourceMap, entryBundleFile.filename, '\n');
-      if (needsSourceMap) {
-        concat.add('__' + entryBundleFile.filename, entryBundleFile.contents, entryBundleFile.sourceMap);
-        concat.add(null, rjsConfig);
-        if (entryBundleFile.appendContents) {
-          concat.add('__append_' + entryBundleFile.filename, entryBundleFile.appendContents, entryBundleFile.appendSourceMap);
-        }
-      } else {
-        concat.add(null, entryBundleFile.contents);
-        concat.add(null, rjsConfig);
-        if (entryBundleFile.appendContents) {
-          concat.add(null, entryBundleFile.appendContents);
-        }
-      }
-
-      const ef = new Vinyl({
-        cwd,
-        base: outputBase,
-        path: path.join(outputBase, entryBundleFile.filename),
-        contents: concat.content
-      });
-
-      if (needsSourceMap && concat.sourceMap) {
-        ef.sourceMap = JSON.parse(concat.sourceMap);
-        // assume user of gulp-dumber writes bundler file with one-level dest only.
-        // like gulp.dest('dist') but not gulp.dest('deep/dist');
-        ef.sourceMap.sourceRoot = '../';
-      }
-
-      this.push(ef);
-
-      cb();
-    })
-    .catch(err => {
-      this.emit('error', new PluginError(PLUGIN_NAME, err));
-    });
+    }
   });
 
   gulpBumber.clearCache = () => dumber.clearCache();
