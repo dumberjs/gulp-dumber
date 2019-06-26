@@ -32,13 +32,13 @@
   "homepage": "https://github.com/dumberjs/gulp-dumber#readme",
   "dependencies": {
     "concat-with-sourcemaps": "^1.1.0",
-    "dumber": "^0.11.5",
+    "dumber": "^0.12",
     "fancy-log": "^1.3.3",
     "plugin-error": "^1.0.1",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {
-    "eslint": "^5.16.0",
+    "eslint": "^6.0.1",
     "gulp": "^4.0.2",
     "nyc": "^14.1.1",
     "standard-changelog": "^2.0.11",

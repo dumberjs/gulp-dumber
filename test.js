@@ -90,9 +90,9 @@ define('app',['foo'],function(){});
 define('raw!fib.wasm',['base64-arraybuffer'],function(a){return {arrayBuffer: function() {return Promise.resolve(a.decode("AGFzbQEAAAABBgFgAX8BfwMCAQAHBwEDZmliAAAKHwEdACAAQQJIBEBBAQ8LIABBAmsQACAAQQFrEABqDws="));}}});
 define.switchToPackageSpace();
 define('base64-arraybuffer/index',[],function(){});
-;define('base64-arraybuffer',['base64-arraybuffer/index'],function(m){return m;});
+;define.alias('base64-arraybuffer','base64-arraybuffer/index');
 define('foo/index',[],function(){});
-;define('foo',['foo/index'],function(m){return m;});
+;define.alias('foo','foo/index');
 define.switchToUserSpace();
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
@@ -238,7 +238,7 @@ test('gulpDumber does code splitting, and progressive bundling in watch mode', t
     t.equal(f.path, path.join(cwd, '__output__', filenameMap['vendor-bundle.js']));
     t.equal(f.contents.toString(), `define.switchToPackageSpace();
 define('foo/index',[],function(){});
-;define('foo',['foo/index'],function(m){return m;});
+;define.alias('foo','foo/index');
 define.switchToUserSpace();`);
   }))
   .pipe(streamAssert.second(f => {
@@ -289,9 +289,9 @@ requirejs.config({
         t.equal(f.path, path.join(cwd, '__output__', filenameMap['vendor-bundle.js']));
         t.equal(f.contents.toString(), `define.switchToPackageSpace();
 define('bar/index',[],function(){});
-;define('bar',['bar/index'],function(m){return m;});
+;define.alias('bar','bar/index');
 define('foo/index',[],function(){});
-;define('foo',['foo/index'],function(m){return m;});
+;define.alias('foo','foo/index');
 define.switchToUserSpace();`);
       } else if (f.path.includes('page-bundle')) {
         t.equal(f.path, path.join(cwd, '__output__', filenameMap['page-bundle.js']));
