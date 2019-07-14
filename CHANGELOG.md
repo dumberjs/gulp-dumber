@@ -1,3 +1,7 @@
+## [0.11.1](https://github.com/dumberjs/gulp-dumber/compare/v0.11.0...v0.11.1) (2019-07-14)
+
+
+
 # [0.11.0](https://github.com/dumberjs/gulp-dumber/compare/v0.10.4...v0.11.0) (2019-06-26)
 
 

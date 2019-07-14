@@ -1,6 +1,6 @@
 {
   "name": "gulp-dumber",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Gulp plugin for dumber bundler",
   "main": "index.js",
   "files": [
