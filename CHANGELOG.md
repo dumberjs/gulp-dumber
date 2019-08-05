@@ -1,3 +1,12 @@
+# [0.12.0](https://github.com/dumberjs/gulp-dumber/compare/v0.11.1...v0.12.0) (2019-08-05)
+
+
+### Features
+
+* upgrade to latest dumber ([5e1d88f](https://github.com/dumberjs/gulp-dumber/commit/5e1d88f))
+
+
+
 ## [0.11.1](https://github.com/dumberjs/gulp-dumber/compare/v0.11.0...v0.11.1) (2019-07-14)
 
 
