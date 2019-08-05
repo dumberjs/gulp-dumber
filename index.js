@@ -1,7 +1,7 @@
 'use strict';
 const {Transform} = require('stream');
 const PluginError = require('plugin-error');
-const Dumber = require('dumber').default;
+const Dumber = require('dumber');
 const Concat = require('concat-with-sourcemaps');
 const Vinyl = require('vinyl');
 const path = require('path');

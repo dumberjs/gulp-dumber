@@ -6,9 +6,9 @@ const streamArray = require('stream-array');
 const streamAssert = require('stream-assert');
 const gulp = require('gulp');
 const gulpDumber = require('./index');
-const {contentOrFile} = require('dumber/dist/shared');
+const {contentOrFile} = require('dumber/lib/shared');
 const path = require('path');
-const _defaultFileReader = require('dumber/dist/package-file-reader/default').default;
+const _defaultFileReader = require('dumber/lib/package-file-reader/default');
 const cwd = process.cwd();
 
 function mockResolve(path) {
