@@ -1,3 +1,12 @@
+## [1.0.1](https://github.com/dumberjs/gulp-dumber/compare/v1.0.0...v1.0.1) (2019-10-29)
+
+
+### Bug Fixes
+
+* skip .d.ts files ([2110332](https://github.com/dumberjs/gulp-dumber/commit/21103322c90d0d196bea513ae17c05883050650d))
+
+
+
 # [1.0.0](https://github.com/dumberjs/gulp-dumber/compare/v0.13.0...v1.0.0) (2019-08-29)
 
 
