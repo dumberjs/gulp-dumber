@@ -419,7 +419,14 @@ test('gulpDumber does basic sourceMap', t => {
     }
   });
 
-  streamArray([a])
+  const b = new Vinyl({
+    cwd,
+    base: path.join(cwd, 'src'),
+    path: path.join(cwd, 'src', 'app.d.ts'),
+    contents: Buffer.from("")
+  });
+
+  streamArray([a, b])
   .pipe(dr())
   .once('error', function (err) {
     t.fail(err.message);

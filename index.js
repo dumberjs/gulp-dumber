@@ -145,6 +145,12 @@ module.exports = function (opts) {
       if (file.isStream()) {
         this.emit('error', new PluginError(PLUGIN_NAME, 'Streaming is not supported'));
       } else if (file.isBuffer()) {
+        // Ignore .d.ts file.
+        if (file.path.endsWith('.d.ts')) {
+          cb();
+          return;
+        }
+
         const p = path.relative(src, file.path).replace(/\\/g, '/');
         const moduleId = p.endsWith('.js') ? p.slice(0, -3) : p;
 
