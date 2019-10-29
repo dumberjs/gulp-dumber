@@ -32,16 +32,16 @@
   "homepage": "https://github.com/dumberjs/gulp-dumber#readme",
   "dependencies": {
     "concat-with-sourcemaps": "^1.1.0",
-    "dumber": "^1.0.0",
+    "dumber": "^1.2.2",
     "fancy-log": "^1.3.3",
     "plugin-error": "^1.0.1",
     "vinyl": "^2.2.0"
   },
   "devDependencies": {
-    "eslint": "^6.2.2",
+    "eslint": "^6.6.0",
     "gulp": "^4.0.2",
     "nyc": "^14.1.1",
-    "standard-changelog": "^2.0.13",
+    "standard-changelog": "^2.0.15",
     "stream-array": "^1.1.2",
     "stream-assert": "^2.0.3",
     "tap-dot": "^2.0.0",
