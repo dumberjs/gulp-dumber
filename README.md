@@ -2,7 +2,7 @@
 
 Gulp plugin for dumber bundler.
 
-**Document site (80% completed)**: https://dumberjs.github.io
+**Document site (80% completed)**: https://dumber.js.org
 
 Check out early examples https://github.com/dumberjs/examples
 
