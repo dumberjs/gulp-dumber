@@ -1,3 +1,12 @@
+## [1.0.2](https://github.com/dumberjs/gulp-dumber/compare/v1.0.1...v1.0.2) (2019-12-09)
+
+
+### Bug Fixes
+
+* avoid passing empty source map to concat-with-sourcemaps ([cf1d9a3](https://github.com/dumberjs/gulp-dumber/commit/cf1d9a3d6c3bebee92b164a77ce501987fc1ae30))
+
+
+
 ## [1.0.1](https://github.com/dumberjs/gulp-dumber/compare/v1.0.0...v1.0.1) (2019-10-29)
 
 
