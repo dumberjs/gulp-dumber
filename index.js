@@ -295,7 +295,8 @@ module.exports = function (opts) {
 function createBundle(bundleName, bundle, needsSourceMap) {
   function concatFile(concat, file) {
     if (needsSourceMap && file.path) {
-      concat.add(file.path, file.contents, file.sourceMap || undefined);
+      const sourceMap = file.sourceMap && file.sourceMap.sources.length ? file.sourceMap : undefined;
+      concat.add(file.path, file.contents, sourceMap);
     } else {
       concat.add(null, file.contents);
     }
