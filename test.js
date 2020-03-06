@@ -86,13 +86,13 @@ test('gulpDumber bundles js', t => {
     t.equal(f.path, path.join(cwd, '__output__', 'entry-bundle.js'));
     t.equal(f.contents.toString(), `dumber-module-loader;
 define.switchToUserSpace();
-define('app',['foo'],function(){});
+define('app.js',['foo'],function(){});
 define('raw!fib.wasm',['base64-arraybuffer'],function(a){return {arrayBuffer: function() {return Promise.resolve(a.decode("AGFzbQEAAAABBgFgAX8BfwMCAQAHBwEDZmliAAAKHwEdACAAQQJIBEBBAQ8LIABBAmsQACAAQQFrEABqDws="));}}});
 define.switchToPackageSpace();
-define('base64-arraybuffer/index',[],function(){});
-;define.alias('base64-arraybuffer','base64-arraybuffer/index');
-define('foo/index',[],function(){});
-;define.alias('foo','foo/index');
+define('base64-arraybuffer/index.js',[],function(){});
+;define.alias('base64-arraybuffer','base64-arraybuffer/index.js');
+define('foo/index.js',[],function(){});
+;define.alias('foo','foo/index.js');
 define.switchToUserSpace();
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
@@ -163,9 +163,9 @@ test('gulpDumber bundles js with above surface module', t => {
     t.equal(f.path, path.join(cwd, '__output__', 'entry-bundle.js'));
     t.equal(f.contents.toString(), `dumber-module-loader;
 define.switchToUserSpace();
-define('../test/app.spec',['../src/app'],function(){});
-define('app',['foo'],function(){});
-define('common/foo',[],function(){});
+define('../test/app.spec.js',['../src/app'],function(){});
+define('app.js',['foo'],function(){});
+define('common/foo.js',[],function(){});
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
   "paths": {
@@ -237,15 +237,15 @@ test('gulpDumber does code splitting, and progressive bundling in watch mode', t
 
     t.equal(f.path, path.join(cwd, '__output__', filenameMap['vendor-bundle.js']));
     t.equal(f.contents.toString(), `define.switchToPackageSpace();
-define('foo/index',[],function(){});
-;define.alias('foo','foo/index');
+define('foo/index.js',[],function(){});
+;define.alias('foo','foo/index.js');
 define.switchToUserSpace();`);
   }))
   .pipe(streamAssert.second(f => {
     t.equal(f.path, path.join(cwd, '__output__', filenameMap['app-bundle.js']));
     t.equal(f.contents.toString(), `dumber-module-loader;
 define.switchToUserSpace();
-define('app',['foo'],function(){});
+define('app.js',['foo'],function(){});
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
   "paths": {
@@ -257,7 +257,7 @@ requirejs.config({
       "user": [],
       "package": [
         "foo",
-        "foo/index"
+        "foo/index.js"
       ]
     }
   }
@@ -288,20 +288,20 @@ requirejs.config({
       if (f.path.includes('vendor-bundle')) {
         t.equal(f.path, path.join(cwd, '__output__', filenameMap['vendor-bundle.js']));
         t.equal(f.contents.toString(), `define.switchToPackageSpace();
-define('bar/index',[],function(){});
-;define.alias('bar','bar/index');
-define('foo/index',[],function(){});
-;define.alias('foo','foo/index');
+define('bar/index.js',[],function(){});
+;define.alias('bar','bar/index.js');
+define('foo/index.js',[],function(){});
+;define.alias('foo','foo/index.js');
 define.switchToUserSpace();`);
       } else if (f.path.includes('page-bundle')) {
         t.equal(f.path, path.join(cwd, '__output__', filenameMap['page-bundle.js']));
         t.equal(f.contents.toString(), `define.switchToUserSpace();
-define('page/one',['bar'],function(){});`);
+define('page/one.js',['bar'],function(){});`);
       } else if (f.path.includes('app-bundle')) {
         t.equal(f.path, path.join(cwd, '__output__', filenameMap['app-bundle.js']));
         t.equal(f.contents.toString(), `dumber-module-loader;
 define.switchToUserSpace();
-define('app',['foo'],function(){});
+define('app.js',['foo'],function(){});
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
   "paths": {
@@ -314,14 +314,14 @@ requirejs.config({
       "user": [],
       "package": [
         "bar",
-        "bar/index",
+        "bar/index.js",
         "foo",
-        "foo/index"
+        "foo/index.js"
       ]
     },
     "page-bundle": {
       "user": [
-        "page/one"
+        "page/one.js"
       ],
       "package": []
     }
@@ -361,8 +361,8 @@ requirejs.config({
       t.equal(f.path, path.join(cwd, '__output__', filenameMap['app-bundle.js']));
       t.equal(f.contents.toString(), `dumber-module-loader;
 define.switchToUserSpace();
-define('app',['foo', 'bar'],function(){});
-define('help',[],function(){});
+define('app.js',['foo', 'bar'],function(){});
+define('help.js',[],function(){});
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
   "paths": {
@@ -375,14 +375,14 @@ requirejs.config({
       "user": [],
       "package": [
         "bar",
-        "bar/index",
+        "bar/index.js",
         "foo",
-        "foo/index"
+        "foo/index.js"
       ]
     },
     "page-bundle": {
       "user": [
-        "page/one"
+        "page/one.js"
       ],
       "package": []
     }
@@ -441,7 +441,7 @@ test('gulpDumber does basic sourceMap', t => {
     t.equal(f.path, path.join(cwd, '__output__', 'entry-bundle.js'));
     t.equal(f.contents.toString(), `dumber-module-loader;
 define.switchToUserSpace();
-define('app',[],function(){});
+define('app.js',[],function(){});
 requirejs.config({
   "baseUrl": (typeof REQUIREJS_BASE_URL === "string") ? REQUIREJS_BASE_URL : "/dist",
   "paths": {

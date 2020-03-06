@@ -151,8 +151,7 @@ module.exports = function (opts) {
           return;
         }
 
-        const p = path.relative(src, file.path).replace(/\\/g, '/');
-        const moduleId = p.endsWith('.js') ? p.slice(0, -3) : p;
+        const moduleId = path.relative(src, file.path).replace(/\\/g, '/');
 
         let sourceMap;
         if (file.sourceMap) {
