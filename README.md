@@ -1,4 +1,4 @@
-# gulp-dumber [![Build Status](https://travis-ci.org/dumberjs/gulp-dumber.svg?branch=master)](https://travis-ci.org/dumberjs/gulp-dumber)
+# gulp-dumber ![CI](https://github.com/dumberjs/gulp-dumber/workflows/CI/badge.svg)
 
 Gulp plugin for dumber bundler.
 
