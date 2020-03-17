@@ -124,7 +124,7 @@ module.exports = function (opts) {
   // in file test/app.spec.js
   // import App from '../src/app';
   //
-  // this shotcut will resolve '../src/app' into 'app'
+  // Short-cut to resolve '../src/app' into 'app'
   opts.paths['../' + _src] = '';
 
   const dumber = new Dumber(opts, opts.mock);
