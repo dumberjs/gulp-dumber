@@ -2,9 +2,7 @@
 
 Gulp plugin for dumber bundler.
 
-**Document site (80% completed)**: https://dumber.js.org
-
-Check out early examples https://github.com/dumberjs/examples
+https://dumber.js.org
 
 Use "makes" to create new SPA project (Aurelia/React/Vue) using dumber bundler.
 
