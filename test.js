@@ -1,10 +1,9 @@
 'use strict';
 const test = require('tape');
 const fs = require('fs');
+const {Readable} = require('stream');
 const Vinyl = require('vinyl');
-const streamArray = require('stream-array');
 const streamAssert = require('stream-assert');
-const gulp = require('gulp');
 const gulpDumber = require('./index');
 const {contentOrFile} = require('dumber/lib/shared');
 const path = require('path');
@@ -71,7 +70,7 @@ test('gulpDumber bundles js', t => {
     contents: fs.readFileSync(path.join(cwd, 'fib.wasm'))
   });
 
-  streamArray([a, b])
+  Readable.from([a, b])
   .pipe(dr())
   .once('error', function (err) {
     t.fail(err.message);
@@ -148,7 +147,7 @@ test('gulpDumber bundles js with above surface module', t => {
     contents: Buffer.from("define([],function(){});")
   });
 
-  streamArray([a, b, c])
+  Readable.from([a, b, c])
   .pipe(dr())
   .once('error', function (err) {
     t.fail(err.message);
@@ -187,7 +186,12 @@ test('gulpDumber does not support streaming', t => {
     'node_modules/dumber-module-loader/dist/index.debug.js': 'dumber-module-loader;'
   }, {cache: false});
 
-  gulp.src('index.js', {buffer: false})
+  Readable.from([new Vinyl({
+    cwd: cwd,
+    base: cwd,
+    path: path.join(cwd, 'index.js'),
+    contents: fs.createReadStream('index.js')
+  })])
   .pipe(dr())
   .once('error', function (err) {
     t.equal(err.message, 'Streaming is not supported');
@@ -224,7 +228,7 @@ test('gulpDumber does code splitting, and progressive bundling in watch mode', t
     contents: Buffer.from("define(['foo'],function(){});")
   });
 
-  streamArray([a])
+  Readable.from([a])
   .pipe(dr())
   .once('error', function (err) {
     t.fail(err.message);
@@ -273,7 +277,7 @@ requirejs.config({
       contents: Buffer.from("define(['bar'],function(){});")
     });
 
-    streamArray([b])
+    Readable.from([b])
     .pipe(dr())
     .once('error', function (err) {
       t.fail(err.message);
@@ -346,7 +350,7 @@ requirejs.config({
       contents: Buffer.from("define([],function(){});")
     });
 
-    streamArray([c, d])
+    Readable.from([c, d])
     .pipe(dr())
     .once('error', function (err) {
       t.fail(err.message);
@@ -426,7 +430,7 @@ test('gulpDumber does basic sourceMap', t => {
     contents: Buffer.from("")
   });
 
-  streamArray([a, b])
+  Readable.from([a, b])
   .pipe(dr())
   .once('error', function (err) {
     t.fail(err.message);
