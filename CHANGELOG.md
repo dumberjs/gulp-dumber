@@ -1,3 +1,19 @@
+# [2.0.0](https://github.com/dumberjs/gulp-dumber/compare/v1.0.3...v2.0.0) (2022-05-20)
+
+
+### chore
+
+* update deps ([af890a7](https://github.com/dumberjs/gulp-dumber/commit/af890a763b4737a41ebfdba0ab73ce2963e28d62))
+* upgrade to dumber v2 ([e2f8c45](https://github.com/dumberjs/gulp-dumber/commit/e2f8c45fc318fda38ca9785a059eeb7be1ea7f5b))
+
+
+### BREAKING CHANGES
+
+* drop support of nodejs v12 and below
+* drop Nodejs support for v10 and below
+
+
+
 ## [1.0.3](https://github.com/dumberjs/gulp-dumber/compare/v1.0.2...v1.0.3) (2020-03-06)
 
 
